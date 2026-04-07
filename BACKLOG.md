@@ -42,7 +42,7 @@
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
-| 2.1 | Definir interface `SignatureService` (`sign`, `validate`) | US-02 | Alta | 🔲 |
+| 2.1 | Definir interface `SignatureService` (`sign`, `validate`) | US-02 | Alta | ✅ |
 | 2.2 | Implementar `FakeSignatureService` (resposta simulada pré-construída) | US-02 | Alta | 🔲 |
 | 2.3 | Projetar esqueleto de `PKCS11SignatureService` (SunPKCS11, sem dispositivo físico) | US-02 | Média | 🔲 |
 | 2.4 | Implementar validação de parâmetros FHIR (campos obrigatórios, base64, algoritmo) | US-02 | Alta | 🔲 |

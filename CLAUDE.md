@@ -155,21 +155,30 @@ runner/
 
 ## Status Atual
 
-**Fase:** Planejamento concluido. Implementacao nao iniciada.
+**Fase:** Sprint 1 concluida. Sprint 2 proxima.
 
-### Bloqueadores antes de implementar
-1. **Investigar parametros FHIR** — campos exatos de `/sign` e `/validate` ainda nao definidos
-   - https://fhir.saude.go.gov.br/r4/seguranca/caso-de-uso-criar-assinatura.html
-   - https://fhir.saude.go.gov.br/r4/seguranca/caso-de-uso-validar-assinatura.html
-2. **Estrutura de pastas final** — Go workspace (modulos compartilhados) ou modulos independentes
+### Sprint 1 — Concluida (2026-03-31)
+- [x] Parametros FHIR investigados e documentados (`planejamento/contrato-fhir.md`)
+- [x] CLI `assinatura` com subcomandos `criar`, `validar`, `servidor` (cobra)
+- [x] CLI `simulador` com subcomandos `iniciar`, `parar`, `status` (cobra)
+- [x] Projeto Java `assinador` (Maven + mvnw, JUnit 5, Javalin, SignatureService interface)
+- [x] `~/.hubsaude/` com `state.json` e `config.json` (leitura, escrita, PID check)
+- [x] Pipeline CI (`.github/workflows/ci.yml`, matrix 3 SOs)
+- [x] Logging estruturado OpenTelemetry (slog + OTel bridge em Go; SLF4J + Logback JSON + OTel appender em Java)
+- [x] 25 testes passando (22 Go + 3 Java)
 
-### Sprint 1 — proximas acoes
-- Investigar e documentar parametros FHIR
-- Criar esqueleto Go do CLI `assinatura` (`cobra`: `criar`, `validar`, `servidor`)
-- Criar esqueleto Go do CLI `simulador` (`cobra`: `iniciar`, `parar`, `status`)
-- Criar projeto Maven `assinador/` com estrutura de pacotes
-- Implementar `~/.hubsaude/` com `state.json` e `config.json`
-- Criar `.github/workflows/ci.yml` (matrix 3 SOs)
+### Decisoes tomadas na Sprint 1
+- Modulos Go independentes (sem workspace compartilhado)
+- Pacote `state` duplicado em ambos CLIs (decisao intencional)
+- PID check via `windows.OpenProcess` (Windows) / `Signal(0)` (Unix)
+- OTel: multiHandler (JSON stderr + OTel bridge) em Go; Logstash encoder + OTel appender em Java
+
+### Sprint 2 — proximas acoes
+- Implementar `FakeSignatureService` (resposta simulada com formato FHIR)
+- Implementar validacao de parametros FHIR (campos obrigatorios, base64, algoritmo)
+- Implementar tratamento de erros estruturado (codigos FHIR)
+- Implementar modo CLI do `assinador.jar` (args -> JSON stdout/stderr)
+- Testes unitarios com cobertura > 80%
 
 ---
 
@@ -237,3 +246,4 @@ Ver `planejamento/ci-cd.md` para os workflows prontos.
 | `entregavel-distribuicao.md` | Cross-compile, Cosign, goreleaser |
 | `entregavel-testes.md` | Criterios de aceitacao por US |
 | `ci-cd.md` | Workflows GitHub Actions prontos para uso |
+| `contrato-fhir.md` | Parametros FHIR investigados para /sign e /validate |

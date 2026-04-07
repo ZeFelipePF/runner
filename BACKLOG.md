@@ -22,15 +22,15 @@
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
-| 1.1 | Investigar parâmetros FHIR e definir contrato de `/sign` e `/validate` | US-02 | Alta | 🔲 |
-| 1.2 | Criar estrutura de projeto do CLI `assinatura` (Go, cobra, build, lint, testes) | US-01 | Alta | 🔲 |
-| 1.3 | Criar estrutura de projeto do CLI `simulador` (Go, cobra, build, lint, testes) | US-03 | Alta | 🔲 |
-| 1.4 | Criar estrutura de projeto Java `assinador` (Maven + mvnw, JUnit 5, Javalin) | US-02 | Alta | 🔲 |
-| 1.5 | Implementar esqueleto do CLI `assinatura` com subcomandos (`criar`, `validar`, `servidor`) | US-01 | Alta | 🔲 |
-| 1.6 | Implementar esqueleto do CLI `simulador` com subcomandos (`iniciar`, `parar`, `status`) | US-03 | Alta | 🔲 |
-| 1.7 | Implementar `~/.hubsaude/` com `state.json` e `config.json` (leitura, escrita, inicialização) | US-01/03 | Alta | 🔲 |
-| 1.8 | Configurar pipeline CI básico (build + testes, matrix 3 SOs) | US-05 | Média | 🔲 |
-| 1.9 | Escrever testes unitários do parsing de comandos e do `state.json` | US-01 | Alta | 🔲 |
+| 1.1 | Investigar parâmetros FHIR e definir contrato de `/sign` e `/validate` | US-02 | Alta | ✅ |
+| 1.2 | Criar estrutura de projeto do CLI `assinatura` (Go, cobra, build, lint, testes) | US-01 | Alta | ✅ |
+| 1.3 | Criar estrutura de projeto do CLI `simulador` (Go, cobra, build, lint, testes) | US-03 | Alta | ✅ |
+| 1.4 | Criar estrutura de projeto Java `assinador` (Maven + mvnw, JUnit 5, Javalin) | US-02 | Alta | ✅ |
+| 1.5 | Implementar esqueleto do CLI `assinatura` com subcomandos (`criar`, `validar`, `servidor`) | US-01 | Alta | ✅ |
+| 1.6 | Implementar esqueleto do CLI `simulador` com subcomandos (`iniciar`, `parar`, `status`) | US-03 | Alta | ✅ |
+| 1.7 | Implementar `~/.hubsaude/` com `state.json` e `config.json` (leitura, escrita, inicialização) | US-01/03 | Alta | ✅ |
+| 1.8 | Configurar pipeline CI básico (build + testes, matrix 3 SOs) | US-05 | Média | ✅ |
+| 1.9 | Escrever testes unitários do parsing de comandos e do `state.json` | US-01 | Alta | ✅ |
 
 **Entregável:** ambos os CLIs compilam e exibem `--help`; `~/.hubsaude/` inicializado corretamente; CI verde nas 3 plataformas.
 

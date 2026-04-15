@@ -1,3 +1,7 @@
 /Users/arthur/Documentos/Faculdade/runner/assinador/src/main/java/br/gov/saude/assinador/App.java
 /Users/arthur/Documentos/Faculdade/runner/assinador/src/main/java/br/gov/saude/assinador/servico/AssinadorException.java
+/Users/arthur/Documentos/Faculdade/runner/assinador/src/main/java/br/gov/saude/assinador/servico/FakeSignatureService.java
+/Users/arthur/Documentos/Faculdade/runner/assinador/src/main/java/br/gov/saude/assinador/servico/PKCS11SignatureService.java
 /Users/arthur/Documentos/Faculdade/runner/assinador/src/main/java/br/gov/saude/assinador/servico/SignatureService.java
+/Users/arthur/Documentos/Faculdade/runner/assinador/src/main/java/br/gov/saude/assinador/validacao/AlgoritmoSuportado.java
+/Users/arthur/Documentos/Faculdade/runner/assinador/src/main/java/br/gov/saude/assinador/validacao/ValidadorFHIR.java

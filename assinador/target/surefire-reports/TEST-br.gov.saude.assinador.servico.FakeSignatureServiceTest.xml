@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="br.gov.saude.assinador.AppTest" time="0.147" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report.xsd" version="3.0.2" name="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.004" tests="7" errors="0" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="24"/>
     <property name="sun.jnu.encoding" value="UTF-8"/>
@@ -58,10 +58,11 @@
     <property name="socksNonProxyHosts" value="local|*.local|169.254/16|*.169.254/16"/>
     <property name="java.class.version" value="68.0"/>
   </properties>
-  <testcase name="appStartsWithoutException" classname="br.gov.saude.assinador.AppTest" time="0.137">
-    <system-out><![CDATA[{"version":"0.1.0","status":"skeleton"}
-]]></system-out>
-    <system-err><![CDATA[{"@timestamp":"2026-04-14T21:12:59.519Z","@version":"1","message":"assinador iniciado","logger_name":"br.gov.saude.assinador.App","thread_name":"main","level":"INFO","level_value":20000,"service.name":"assinador","service.version":"0.1.0"}
-]]></system-err>
-  </testcase>
+  <testcase name="signLancaQuandoPrivateKeyAusente" classname="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.001"/>
+  <testcase name="signLancaQuandoMessageAusente" classname="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.0"/>
+  <testcase name="signLancaQuandoMessageNaoBase64" classname="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.001"/>
+  <testcase name="validateRejeitaAssinaturaDiferente" classname="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.0"/>
+  <testcase name="signRetornaAssinaturaFixa" classname="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.0"/>
+  <testcase name="validateAceitaAssinaturaCorreta" classname="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.0"/>
+  <testcase name="validateLancaQuandoParametroAusente" classname="br.gov.saude.assinador.servico.FakeSignatureServiceTest" time="0.0"/>
 </testsuite>

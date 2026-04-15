@@ -43,9 +43,9 @@
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
 | 2.1 | Definir interface `SignatureService` (`sign`, `validate`) | US-02 | Alta | ✅ |
-| 2.2 | Implementar `FakeSignatureService` (resposta simulada pré-construída) | US-02 | Alta | 🔲 |
-| 2.3 | Projetar esqueleto de `PKCS11SignatureService` (SunPKCS11, sem dispositivo físico) | US-02 | Média | 🔲 |
-| 2.4 | Implementar validação de parâmetros FHIR (campos obrigatórios, base64, algoritmo) | US-02 | Alta | 🔲 |
+| 2.2 | Implementar `FakeSignatureService` (resposta simulada pré-construída) | US-02 | Alta | ✅ |
+| 2.3 | Projetar esqueleto de `PKCS11SignatureService` (SunPKCS11, sem dispositivo físico) | US-02 | Média | ✅ |
+| 2.4 | Implementar validação de parâmetros FHIR (campos obrigatórios, base64, algoritmo) | US-02 | Alta | ✅ |
 | 2.5 | Implementar tratamento de erros estruturado (códigos `PARAM_AUSENTE`, `PARAM_INVALIDO`, etc.) | US-02 | Alta | 🔲 |
 | 2.6 | Implementar modo CLI do `assinador.jar` (args → JSON stdout/stderr) | US-02 | Alta | 🔲 |
 | 2.7 | Escrever testes unitários do `assinador.jar` (parâmetros válidos e inválidos, cobertura > 80%) | US-02 | Alta | 🔲 |

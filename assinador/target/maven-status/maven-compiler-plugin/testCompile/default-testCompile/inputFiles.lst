@@ -1,2 +1,5 @@
 /Users/arthur/Documentos/Faculdade/runner/assinador/src/test/java/br/gov/saude/assinador/AppTest.java
+/Users/arthur/Documentos/Faculdade/runner/assinador/src/test/java/br/gov/saude/assinador/servico/FakeSignatureServiceTest.java
+/Users/arthur/Documentos/Faculdade/runner/assinador/src/test/java/br/gov/saude/assinador/servico/PKCS11SignatureServiceTest.java
 /Users/arthur/Documentos/Faculdade/runner/assinador/src/test/java/br/gov/saude/assinador/servico/SignatureServiceTest.java
+/Users/arthur/Documentos/Faculdade/runner/assinador/src/test/java/br/gov/saude/assinador/validacao/ValidadorFHIRTest.java

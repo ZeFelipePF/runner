@@ -25,13 +25,13 @@ O Sistema Runner e composto por:
 
 ### Parametros e Contratos
 
-- [ ] Investigar parametros FHIR para `criar` e `validar` — ver `entregavel-assinador.md` e `entregavel-cli-assinatura.md`
-- [ ] Definir forma de fornecer parametros (flags individuais, arquivo JSON, ou combinacao)
-- [ ] Definir campos exatos de request/response do `SignatureController`
+- [x] Investigar parametros FHIR para `criar` e `validar` — ver `planejamento/contrato-fhir.md`
+- [x] Definir forma de fornecer parametros: **arquivo JSON via `--payload` (ou stdin com `-`)**
+- [x] Definir campos exatos de request/response do `SignatureController` (ver `contrato-fhir.md`)
 
 ### Arquitetura
 
-- [ ] Definir estrutura de pastas final do monorepo
+- [x] Definir estrutura de pastas final do monorepo (ver `CLAUDE.md` § Estrutura de Pastas)
 - [x] Porta padrao do assinador.jar: **8088**, auto-deteccao no range +20 (8089, 8090...)
 - [x] Endpoints do servidor: **`POST /sign`** e **`POST /validate`** (+ `/health`, `/shutdown`)
 - [x] Formato de comunicacao: **JSON**
@@ -49,29 +49,29 @@ O Sistema Runner e composto por:
 ## To-Do por Sprint
 
 ### Sprint 1 — Fundacao (17/03 - 30/03)
-- [ ] Tomar todas as decisoes tecnicas acima
-- [ ] Investigar parametros FHIR (criar e validar) e definir contrato
-- [ ] Criar estrutura de projeto do CLI
-- [ ] Criar estrutura de projeto do assinador.jar
-- [ ] Implementar esqueleto do CLI com `--help` e subcomandos
-- [ ] Implementar estrutura de `~/.hubsaude/` (estado-local)
-- [ ] Configurar CI basico
+- [x] Tomar todas as decisoes tecnicas acima
+- [x] Investigar parametros FHIR (criar e validar) e definir contrato
+- [x] Criar estrutura de projeto do CLI
+- [x] Criar estrutura de projeto do assinador.jar
+- [x] Implementar esqueleto do CLI com `--help` e subcomandos
+- [x] Implementar estrutura de `~/.hubsaude/` (estado-local)
+- [x] Configurar CI basico
 
 ### Sprint 2 — Assinador (31/03 - 13/04)
-- [ ] Definir interface `SignatureService`
-- [ ] Implementar `FakeSignatureService`
-- [ ] Projetar esqueleto de `PKCS11SignatureService`
-- [ ] Implementar `SignatureController` com `/sign`, `/validate`, `/health`, `/shutdown`
-- [ ] Implementar validacao de parametros FHIR
-- [ ] Implementar modo CLI do assinador.jar
-- [ ] Testes unitarios (cobertura > 80%)
+- [x] Definir interface `SignatureService`
+- [x] Implementar `FakeSignatureService`
+- [x] Projetar esqueleto de `PKCS11SignatureService`
+- [x] Implementar `SignatureController` com `/sign`, `/validate`, `/health`, `/shutdown`
+- [x] Implementar validacao de parametros FHIR
+- [x] Implementar modo CLI do assinador.jar
+- [x] Testes unitarios (cobertura > 80%)
 
 ### Sprint 3 — Integracao (14/04 - 27/04)
-- [ ] Implementar startup do CLI assinatura (ver startup.md)
-- [ ] Implementar invocacao direta (modo local)
-- [ ] Implementar invocacao HTTP (POST /sign, POST /validate)
-- [ ] Implementar auto-deteccao de porta disponivel
-- [ ] Implementar state.json (gravar/ler PID e porta)
+- [x] Implementar startup do CLI assinatura (ver startup.md)
+- [x] Implementar invocacao direta (modo local)
+- [x] Implementar invocacao HTTP (POST /sign, POST /validate)
+- [x] Implementar auto-deteccao de porta disponivel
+- [x] Implementar state.json (gravar/ler PID e porta)
 - [ ] Implementar propagacao de erros
 - [ ] Testes de integracao
 

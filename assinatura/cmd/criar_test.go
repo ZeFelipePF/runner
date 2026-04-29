@@ -13,7 +13,7 @@ func TestCriarCommand_Registered(t *testing.T) {
 }
 
 func TestCriarCommand_HasExpectedFlags(t *testing.T) {
-	flags := []string{"message-file", "private-key", "algoritmo", "modo", "porta"}
+	flags := []string{"payload", "modo", "porta", "jar"}
 	for _, f := range flags {
 		assert.NotNil(t, criarCmd.Flags().Lookup(f), "flag %q deveria existir", f)
 	}

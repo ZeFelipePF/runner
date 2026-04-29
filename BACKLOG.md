@@ -60,11 +60,11 @@
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
-| 3.1 | Implementar `SignatureController` com Javalin (endpoints `/sign`, `/validate`, `/health`, `/shutdown`) | US-01 | Alta | 🔲 |
-| 3.2 | Implementar invocação direta no CLI (`os/exec` → `java -jar assinador.jar`) | US-01 | Alta | 🔲 |
-| 3.3 | Implementar invocação via HTTP no CLI (`POST /sign`, `POST /validate`) | US-01 | Alta | 🔲 |
-| 3.4 | Implementar startup do CLI: detecção de instância existente via `state.json` + PID | US-01 | Alta | 🔲 |
-| 3.5 | Implementar auto-detecção de porta disponível (8088, 8089... +20) | US-01 | Alta | 🔲 |
+| 3.1 | Implementar `SignatureController` com Javalin (endpoints `/sign`, `/validate`, `/health`, `/shutdown`) | US-01 | Alta | ✅ |
+| 3.2 | Implementar invocação direta no CLI (`os/exec` → `java -jar assinador.jar`) | US-01 | Alta | ✅ |
+| 3.3 | Implementar invocação via HTTP no CLI (`POST /sign`, `POST /validate`) | US-01 | Alta | ✅ |
+| 3.4 | Implementar startup do CLI: detecção de instância existente via `state.json` + PID | US-01 | Alta | ✅ |
+| 3.5 | Implementar auto-detecção de porta disponível (8088, 8089... +20) | US-01 | Alta | ✅ |
 | 3.6 | Gravar PID e porta em `state.json` ao iniciar servidor; limpar ao parar | US-01 | Alta | 🔲 |
 | 3.7 | Implementar formatação e exibição dos resultados no CLI (`stdout`/`stderr`) | US-01 | Média | 🔲 |
 | 3.8 | Implementar propagação estruturada de erros entre as camadas | US-01 | Alta | 🔲 |

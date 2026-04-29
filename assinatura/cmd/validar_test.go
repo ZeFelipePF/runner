@@ -13,7 +13,7 @@ func TestValidarCommand_Registered(t *testing.T) {
 }
 
 func TestValidarCommand_HasExpectedFlags(t *testing.T) {
-	flags := []string{"message-file", "signature", "public-key", "modo", "porta"}
+	flags := []string{"payload", "modo", "porta", "jar"}
 	for _, f := range flags {
 		assert.NotNil(t, validarCmd.Flags().Lookup(f), "flag %q deveria existir", f)
 	}

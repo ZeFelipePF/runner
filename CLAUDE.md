@@ -88,28 +88,32 @@ SignatureController              # Javalin — expoe /sign e /validate
 ```
 runner/
 ├── assinatura/         # CLI Go
-│   ├── cmd/            # Comandos cobra (criar, validar, servidor)
+│   ├── cmd/            # Comandos cobra (criar, validar, servidor iniciar/parar/status)
 │   ├── internal/
-│   │   ├── assinador/  # Cliente CLI e HTTP para o assinador.jar
-│   │   ├── jdk/        # Deteccao e provisionamento JDK
+│   │   ├── assinador/  # ClienteCLI (os/exec), ClienteHTTP (net/http), Garantir startup, LocalizarJar
+│   │   ├── porta/      # Auto-deteccao de porta livre (+20 janela)
+│   │   ├── logging/    # slog + OTel bridge
+│   │   ├── jdk/        # (planejado Sprint 4) deteccao e provisionamento JDK
 │   │   └── state/      # Leitura/escrita de ~/.hubsaude/
 │   └── main.go
 ├── simulador/          # CLI Go
 │   ├── cmd/            # Comandos cobra (iniciar, parar, status)
 │   ├── internal/
-│   │   ├── download/   # Download do simulador.jar
-│   │   ├── jdk/        # Deteccao e provisionamento JDK (duplicado)
-│   │   └── processo/   # Gerenciamento do processo Java
+│   │   ├── logging/    # slog + OTel bridge
+│   │   ├── state/      # Leitura/escrita de ~/.hubsaude/ (duplicado)
+│   │   ├── download/   # (planejado Sprint 4) Download do simulador.jar
+│   │   ├── jdk/        # (planejado Sprint 4) Deteccao e provisionamento JDK
+│   │   └── processo/   # (planejado Sprint 4) Gerenciamento do processo Java
 │   └── main.go
 ├── assinador/          # Java — Maven
 │   └── src/main/java/br/gov/saude/assinador/
-│       ├── servico/    # SignatureService, FakeSignatureService
-│       ├── servidor/   # SignatureController (Javalin)
-│       ├── cli/        # Modo CLI (args -> JSON stdout)
-│       └── validacao/  # Validacao de parametros FHIR
+│       ├── servico/    # SignatureService, Fake/PKCS11SignatureService, AssinadorException
+│       ├── servidor/   # SignatureController + AssinadorServidor (Javalin)
+│       ├── cli/        # Modo CLI (AssinadorCli, AcaoAssinar, AcaoValidar)
+│       ├── validacao/  # ValidadorFHIR, AlgoritmoSuportado
+│       └── erro/       # MapeadorErro (HTTP/exit code), RespostaErro
 ├── .github/workflows/
-│   ├── ci.yml          # Build + testes (matrix 3 SOs)
-│   └── release.yml     # Cross-compile + Cosign + GitHub Release
+│   └── ci.yml          # Build + testes (matrix 3 SOs)
 ├── planejamento/
 └── docs/
 ```
@@ -155,57 +159,72 @@ runner/
 
 ## Status Atual
 
-**Fase:** Sprint 1 concluida. Sprint 2 proxima.
+**Fase:** Sprint 3 parcialmente concluida (3.1–3.5). Itens 3.6–3.9 pendentes.
 
 ### Sprint 1 — Concluida (2026-03-31)
-- [x] Parametros FHIR investigados e documentados (`planejamento/contrato-fhir.md`)
-- [x] CLI `assinatura` com subcomandos `criar`, `validar`, `servidor` (cobra)
-- [x] CLI `simulador` com subcomandos `iniciar`, `parar`, `status` (cobra)
-- [x] Projeto Java `assinador` (Maven + mvnw, JUnit 5, Javalin, SignatureService interface)
-- [x] `~/.hubsaude/` com `state.json` e `config.json` (leitura, escrita, PID check)
-- [x] Pipeline CI (`.github/workflows/ci.yml`, matrix 3 SOs)
-- [x] Logging estruturado OpenTelemetry (slog + OTel bridge em Go; SLF4J + Logback JSON + OTel appender em Java)
-- [x] 25 testes passando (22 Go + 3 Java)
+- CLI `assinatura` e `simulador` com cobra (subcomandos esqueleto)
+- Projeto Java `assinador` (Maven + mvnw, JUnit 5, Javalin)
+- `~/.hubsaude/` com `state.json` + `config.json` (PID check via `windows.OpenProcess` / `Signal(0)`)
+- Pipeline CI matrix 3 SOs
+- Logging OTel (slog multiHandler em Go; Logstash + OTel appender em Java)
 
-### Decisoes tomadas na Sprint 1
-- Modulos Go independentes (sem workspace compartilhado)
-- Pacote `state` duplicado em ambos CLIs (decisao intencional)
-- PID check via `windows.OpenProcess` (Windows) / `Signal(0)` (Unix)
-- OTel: multiHandler (JSON stderr + OTel bridge) em Go; Logstash encoder + OTel appender em Java
+### Sprint 2 — Concluida (2026-04-13)
+- Interface `SignatureService` + `FakeSignatureService` + esqueleto `PKCS11SignatureService`
+- Validacao de parametros FHIR (`ValidadorFHIR`) com codigos `PARAM_AUSENTE`/`PARAM_INVALIDO`/`ALGORITMO_NAO_SUPORTADO`
+- Modo CLI do `assinador.jar` (`AssinadorCli`, `AcaoAssinar`, `AcaoValidar`) — payload JSON via `--input <arq>` ou stdin
+- Mapeador de erros (`MapeadorErro`) → HTTP status + exit code
+- Cobertura > 80% (excluindo `PKCS11SignatureService`)
 
-### Sprint 2 — proximas acoes
-- Implementar `FakeSignatureService` (resposta simulada com formato FHIR)
-- Implementar validacao de parametros FHIR (campos obrigatorios, base64, algoritmo)
-- Implementar tratamento de erros estruturado (codigos FHIR)
-- Implementar modo CLI do `assinador.jar` (args -> JSON stdout/stderr)
-- Testes unitarios com cobertura > 80%
+### Sprint 3 — Em andamento (14/04 — 27/04)
+**Concluido (3.1–3.5):**
+- `SignatureController` Javalin + `AssinadorServidor` (`POST /sign`, `POST /validate`, `GET /health`, `POST /shutdown`)
+  — `App.java` aceita `server` como primeiro arg; default continua sendo modo CLI
+- Pacote Go `internal/assinador` com `ClienteCLI` (modo local via `os/exec`) e `ClienteHTTP` (modo HTTP)
+- `Garantir()` em `startup.go`: checa `state.json` + PID + `/health`, reusa instancia existente ou inicia nova
+- Pacote Go `internal/porta`: `LivreOuProxima` em janela de +20 portas
+- Wiring nos comandos cobra: `criar`, `validar`, `servidor iniciar/parar/status`
+- Localizacao do jar via `LocalizarJar()` (env `HUBSAUDE_ASSINADOR_JAR` → `~/.hubsaude/assinador/` → cwd → `assinador/target/`)
+
+**Pendente (3.6–3.9):**
+- Limpeza fina de `state.json` ao parar servidor
+- Formatacao explicita de stdout/stderr (saida ja usa JSON puro)
+- Propagacao estruturada de erros entre camadas (mapear `*RespostaErro` → exit code do CLI)
+- Testes de integracao end-to-end (CLI ↔ jar real, dois modos)
+
+### Sprint 4 — proximas acoes
+- Provisionamento JDK (Adoptium API)
+- Comandos `simulador iniciar/parar/status` integrados a download do `simulador.jar`
+- Cache + flag `--source` + verificacao SHA256
+
+### Status de testes (validado localmente)
+- **Go:** 37 testes em `assinatura` + 17 em `simulador` = **54 passando**
+- **Java:** 69 testes em `assinador` (cobertura > 80%)
+- **Total: 123 testes passando**
+- Tooling local: Go 1.26 (Homebrew), Java 21, Maven 3.9 via `mvnw`
 
 ---
 
-## Testes Pendentes
+## Cobertura de Testes
 
-Nenhum teste implementado. Cenarios a cobrir:
+**CLI Go (54 testes — `testing` + `testify`):**
+- `assinatura/cmd`: registro de subcomandos e flags (criar, validar, servidor)
+- `assinatura/internal/assinador`: ClienteCLI (stdin/stdout, RespostaErro estruturada), ClienteHTTP (sucesso, erro 4xx, /health, AguardarPronto), Garantir startup (reuso, PID obsoleto)
+- `assinatura/internal/porta`: Disponivel, EmUso, LivreOuProxima (range +20)
+- `assinatura/internal/state`: leitura/escrita state.json + config.json, `t.TempDir()`, CleanStale
+- `simulador/cmd` + `simulador/internal/state`: idem ao assinatura
 
-**CLI Go (`testing` + `testify`):**
-- Parsing de flags e subcomandos
-- Auto-deteccao de porta (livre vs ocupada)
-- Leitura/escrita de `state.json` (`t.TempDir()`)
-- Validacao de PID obsoleto em `state.json`
-- Invocacao do assinador.jar (mock de `os/exec`)
-- Requisicao HTTP ao assinador (mock de `net/http`)
-- Download do JDK e simulador.jar (mock de HTTP)
+**assinador.jar (69 testes — JUnit 5):**
+- `FakeSignatureService` / `PKCS11SignatureService` / `SignatureService`
+- `ValidadorFHIR`: campos obrigatorios, base64, algoritmo, hashes SHA-256
+- `AssinadorCli` + `AcaoAssinar` + `AcaoValidar`: parsing args, payload via stdin/arquivo
+- `MapeadorErro` + `RespostaErro`
+- `SignatureController`: /sign, /validate, /health, /shutdown via HTTP real
+- Cobertura JaCoCo > 80% (excluindo `PKCS11SignatureService`)
 
-**assinador.jar (JUnit 5 + Mockito):**
-- `FakeSignatureService.sign` → retorna valor base64 fixo
-- `FakeSignatureService.validate` → assinatura correta = true; incorreta = false
-- Validacao: campo obrigatorio ausente → `PARAM_AUSENTE` (400)
-- Validacao: base64 invalido → `PARAM_INVALIDO` (400)
-- Validacao: algoritmo nao suportado → `ALGORITMO_NAO_SUPORTADO` (400)
-- `POST /sign` payload valido → 200 com assinatura
-- `POST /validate` → 200 com `{ "valid": true/false }`
-- `POST /sign` payload invalido → 400
-
-**Meta:** 80% de cobertura de linhas (foco em `validacao/` e `servico/`).
+**Lacunas (a cobrir nas proximas sprints):**
+- Testes de integracao end-to-end CLI ↔ jar real (Sprint 3, item 3.9)
+- Download do JDK e simulador.jar (Sprint 4, mock de HTTP)
+- Provisionamento JDK multiplataforma (Sprint 4)
 
 ---
 

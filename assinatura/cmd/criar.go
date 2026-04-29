@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -11,18 +9,15 @@ var criarCmd = &cobra.Command{
 	Short: "Criar assinatura digital",
 	Long:  "Cria uma assinatura digital utilizando o assinador.jar.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		logger.Info("comando criar invocado")
-		fmt.Fprintln(cmd.ErrOrStderr(), "Comando 'criar' ainda nao implementado (Sprint 2+)")
-		return nil
+		return executarOperacaoAssinador(cmd, "sign")
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(criarCmd)
 
-	criarCmd.Flags().String("message-file", "", "Caminho do arquivo com conteudo a assinar")
-	criarCmd.Flags().String("private-key", "", "Caminho do arquivo de chave privada")
-	criarCmd.Flags().String("algoritmo", "SHA256withRSA", "Algoritmo de assinatura")
+	criarCmd.Flags().String("payload", "", "Caminho do arquivo JSON com o payload FHIR ('-' = stdin)")
 	criarCmd.Flags().String("modo", "http", "Modo de invocacao: local ou http")
-	criarCmd.Flags().Int("porta", 0, "Porta do servidor (0 = auto-detectar)")
+	criarCmd.Flags().Int("porta", 0, "Porta do servidor HTTP (0 = usar config / auto-detectar)")
+	criarCmd.Flags().String("jar", "", "Caminho do assinador.jar (default: localizar automaticamente)")
 }

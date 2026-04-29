@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PKCS11SignatureService.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Assinador</a> &gt; <a href="index.source.html" class="el_package">br.gov.saude.assinador.servico</a> &gt; <span class="el_source">PKCS11SignatureService.java</span></div><h1>PKCS11SignatureService.java</h1><pre class="source lang-java linenums">package br.gov.saude.assinador.servico;
+
+import java.nio.file.Path;
+
+/**
+ * Esqueleto de SignatureService apoiado em dispositivo criptografico via SunPKCS11.
+ *
+ * A chave privada permanece no dispositivo — os parametros privateKey/publicKey da
+ * interface sao usados apenas como alias/identificador dentro do KeyStore PKCS#11.
+ * A autenticacao e feita com o PIN fornecido na construcao.
+ *
+ * Este servico nao e funcional sem um token/smartcard fisico e o driver nativo do
+ * fabricante. Os metodos lancam AssinadorException enquanto a integracao nao for
+ * concluida.
+ *
+ * Fluxo previsto de inicializacao:
+ *   Provider p = Security.getProvider(&quot;SunPKCS11&quot;).configure(configPath);
+ *   Security.addProvider(p);
+ *   KeyStore ks = KeyStore.getInstance(&quot;PKCS11&quot;, p);
+ *   ks.load(null, pin);
+ */
+public class PKCS11SignatureService implements SignatureService {
+
+    private final Path configPath;
+    private final char[] pin;
+
+<span class="fc" id="L27">    public PKCS11SignatureService(Path configPath, char[] pin) {</span>
+<span class="fc bfc" id="L28" title="All 2 branches covered.">        if (configPath == null) {</span>
+<span class="fc" id="L29">            throw new AssinadorException(</span>
+                    AssinadorException.Codigo.PARAM_AUSENTE,
+                    &quot;configPath obrigatorio&quot;);
+        }
+<span class="pc bpc" id="L33" title="1 of 4 branches missed.">        if (pin == null || pin.length == 0) {</span>
+<span class="fc" id="L34">            throw new AssinadorException(</span>
+                    AssinadorException.Codigo.PARAM_AUSENTE,
+                    &quot;pin obrigatorio&quot;);
+        }
+<span class="fc" id="L38">        this.configPath = configPath;</span>
+<span class="fc" id="L39">        this.pin = pin.clone();</span>
+<span class="fc" id="L40">    }</span>
+
+    @Override
+    public String sign(String message, String privateKeyAlias) throws AssinadorException {
+<span class="fc" id="L44">        throw new AssinadorException(</span>
+                AssinadorException.Codigo.ERRO_INTERNO,
+                &quot;PKCS11SignatureService nao implementado: dispositivo criptografico indisponivel&quot;);
+    }
+
+    @Override
+    public boolean validate(String message, String signature, String publicKeyAlias) throws AssinadorException {
+<span class="fc" id="L51">        throw new AssinadorException(</span>
+                AssinadorException.Codigo.ERRO_INTERNO,
+                &quot;PKCS11SignatureService nao implementado: dispositivo criptografico indisponivel&quot;);
+    }
+
+    Path getConfigPath() {
+<span class="nc" id="L57">        return configPath;</span>
+    }
+
+    char[] getPin() {
+<span class="nc" id="L61">        return pin.clone();</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

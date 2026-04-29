@@ -1,5 +1,6 @@
 package br.gov.saude.assinador;
 
+import br.gov.saude.assinador.cli.AssinadorCli;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -8,14 +9,6 @@ public class App {
 
     public static void main(String[] args) {
         logger.info("assinador iniciado");
-
-        if (args.length == 0) {
-            System.out.println("{\"version\":\"0.1.0\",\"status\":\"skeleton\"}");
-            return;
-        }
-
-        logger.info("comando recebido: {}", args[0]);
-        System.err.println("{\"error\":\"NOT_IMPLEMENTED\",\"message\":\"Comandos serao implementados na Sprint 2\"}");
-        System.exit(1);
+        AssinadorCli.main(args);
     }
 }

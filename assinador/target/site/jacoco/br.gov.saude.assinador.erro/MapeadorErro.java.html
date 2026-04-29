@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="pt"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MapeadorErro.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">Assinador</a> &gt; <a href="index.source.html" class="el_package">br.gov.saude.assinador.erro</a> &gt; <span class="el_source">MapeadorErro.java</span></div><h1>MapeadorErro.java</h1><pre class="source lang-java linenums">package br.gov.saude.assinador.erro;
+
+import br.gov.saude.assinador.servico.AssinadorException.Codigo;
+
+/**
+ * Mapeia codigos de erro de dominio para HTTP status e codigo de saida do processo CLI.
+ * Tabela de referencia em planejamento/entregavel-assinador.md.
+ */
+public final class MapeadorErro {
+
+    private MapeadorErro() {}
+
+    public static int httpStatus(Codigo codigo) {
+<span class="fc bfc" id="L14" title="All 2 branches covered.">        if (codigo == null) return 500;</span>
+<span class="fc bfc" id="L15" title="All 3 branches covered.">        return switch (codigo) {</span>
+<span class="fc" id="L16">            case PARAM_AUSENTE, PARAM_INVALIDO, ALGORITMO_NAO_SUPORTADO -&gt; 400;</span>
+<span class="fc" id="L17">            case PAYLOAD_MUITO_GRANDE -&gt; 413;</span>
+<span class="fc" id="L18">            case ERRO_INTERNO -&gt; 500;</span>
+        };
+    }
+
+    public static int exitCode(Codigo codigo) {
+<span class="fc bfc" id="L23" title="All 2 branches covered.">        if (codigo == null) return 1;</span>
+<span class="fc bfc" id="L24" title="All 5 branches covered.">        return switch (codigo) {</span>
+<span class="fc" id="L25">            case PARAM_AUSENTE -&gt; 2;</span>
+<span class="fc" id="L26">            case PARAM_INVALIDO -&gt; 3;</span>
+<span class="fc" id="L27">            case ALGORITMO_NAO_SUPORTADO -&gt; 4;</span>
+<span class="fc" id="L28">            case PAYLOAD_MUITO_GRANDE -&gt; 5;</span>
+<span class="fc" id="L29">            case ERRO_INTERNO -&gt; 1;</span>
+        };
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.12.202403310830</span></div></body></html>

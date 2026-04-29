@@ -1,1 +1,16 @@
 .claude
+
+# Maven
+target/
+dependency-reduced-pom.xml
+*.class
+
+# Go
+*.exe
+*.test
+*.out
+
+# IDE
+.idea/
+.vscode/
+*.iml

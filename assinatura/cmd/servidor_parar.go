@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
 	"time"
@@ -20,7 +21,10 @@ var servidorPararCmd = &cobra.Command{
 			return err
 		}
 		if st.Assinador == nil {
-			fmt.Fprintln(cmd.ErrOrStderr(), "[i] nenhum assinador registrado em state.json")
+			emitirJSON(cmd.OutOrStdout(), map[string]any{
+				"status":  "NOT_RUNNING",
+				"message": "nenhum assinador registrado em state.json",
+			})
 			return nil
 		}
 
@@ -30,21 +34,39 @@ var servidorPararCmd = &cobra.Command{
 		ctx, cancel := context.WithTimeout(cmd.Context(), 5*time.Second)
 		defer cancel()
 
+		metodo := "http_shutdown"
 		cliente := assinador.NovoClienteHTTP(porta)
 		shutdownErr := cliente.Shutdown(ctx)
-		if shutdownErr != nil && state.IsProcessAlive(pid) {
-			if p, e := os.FindProcess(pid); e == nil {
-				_ = p.Kill()
+		if shutdownErr != nil {
+			metodo = "sigkill"
+			if state.IsProcessAlive(pid) {
+				if p, e := os.FindProcess(pid); e == nil {
+					_ = p.Kill()
+				}
+			} else {
+				metodo = "stale_pid"
 			}
 		}
 
 		st.Assinador = nil
 		if err := st.Save(); err != nil {
-			return err
+			return fmt.Errorf("ao limpar state.json: %w", err)
 		}
-		fmt.Fprintln(cmd.OutOrStdout(), `{"status":"STOPPED"}`)
+
+		emitirJSON(cmd.OutOrStdout(), map[string]any{
+			"status":  "STOPPED",
+			"pid":     pid,
+			"porta":   porta,
+			"metodo":  metodo,
+		})
 		return nil
 	},
+}
+
+func emitirJSON(w interface{ Write([]byte) (int, error) }, v any) {
+	enc := json.NewEncoder(w)
+	enc.SetIndent("", "  ")
+	_ = enc.Encode(v)
 }
 
 func init() {

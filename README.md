@@ -97,12 +97,43 @@ simulador iniciar
 # Iniciar com URL alternativa para o simulador.jar
 simulador iniciar --source http://servidor-local/simulador.jar
 
-# Consultar status
+# Iniciar uma versão específica (GitHub Releases tag)
+simulador iniciar --versao-simulador v1.2.0
+
+# Forçar uma porta específica
+simulador iniciar --porta 9100
+
+# Consultar status (PID, porta, uptime, health)
 simulador status
 
-# Parar o simulador
+# Parar o simulador (HTTP shutdown → SIGTERM → SIGKILL)
 simulador parar
 ```
+
+### Códigos de saída (CLI assinatura)
+
+O exit code reflete o código de erro retornado pelo `assinador.jar`:
+
+| Exit | Código | Significado |
+|------|--------|-------------|
+| 0 | — | Sucesso |
+| 1 | `CLI_ERROR` | Erro genérico do CLI |
+| 2 | `PARAM_AUSENTE` | Campo FHIR obrigatório faltando |
+| 3 | `PARAM_INVALIDO` | Campo FHIR mal formado |
+| 4 | `ALGORITMO_NAO_SUPORTADO` | Algoritmo não suportado |
+| 5 | `ASSINATURA_INVALIDA` | Validação da assinatura falhou |
+| 6 | `DISPOSITIVO_INDISPONIVEL` / `PIN_INVALIDO` | PKCS#11 |
+| 7 | `ERRO_INTERNO` | Falha interna do `assinador.jar` |
+
+Erros são emitidos em stderr como JSON: `{"error": "PARAM_AUSENTE", "message": "..."}`. Saída de sucesso vai para stdout, sempre como JSON pretty-printed.
+
+### Variáveis de ambiente
+
+| Variável | Uso |
+|----------|-----|
+| `HUBSAUDE_ASSINADOR_JAR` | Caminho explícito para `assinador.jar` |
+| `HUBSAUDE_ADOPTIUM_URL` | Sobrescreve o endpoint da API Adoptium (testes) |
+| `HUBSAUDE_SIMULADOR_REPO` | Sobrescreve o endpoint do GitHub Releases do simulador |
 
 ## Desenvolvimento
 
@@ -125,9 +156,12 @@ cd assinador && ./mvnw package
 ### Testes
 
 ```bash
-# CLI (unitários + integração)
+# CLI (unitários)
 cd assinatura && go test ./...
 cd simulador  && go test ./...
+
+# CLI (integração end-to-end — requer assinador.jar buildado e java no PATH)
+cd assinatura && go test -tags=integration ./internal/assinador/...
 
 # assinador.jar (unitários)
 cd assinador && ./mvnw test
@@ -141,11 +175,11 @@ cd assinador && ./mvnw verify
 ```
 runner/
 ├── assinatura/          # CLI Go — invocação do assinador.jar
-│   ├── cmd/             # Subcomandos cobra (criar, validar, servidor)
-│   └── internal/        # assinador/, jdk/, state/
+│   ├── cmd/             # Subcomandos cobra (criar, validar, servidor) + exit codes
+│   └── internal/        # assinador/ (incl. integration_test), jdk/, porta/, state/, logging/
 ├── simulador/           # CLI Go — gerenciamento do simulador.jar
 │   ├── cmd/             # Subcomandos cobra (iniciar, parar, status)
-│   └── internal/        # download/, jdk/, processo/
+│   └── internal/        # download/, jdk/, porta/, processo/, state/, logging/
 ├── assinador/           # Java 21 — Maven
 │   └── src/             # servico/, servidor/, cli/, validacao/
 ├── .github/workflows/

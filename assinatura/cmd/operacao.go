@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"time"
 
 	"github.com/hubsaude/runner/assinatura/internal/assinador"
@@ -12,7 +13,8 @@ import (
 )
 
 // executarOperacaoAssinador encapsula o fluxo dos comandos `criar` e `validar`:
-// le payload, escolhe modo (local|http), executa, imprime resposta no stdout.
+// le payload, escolhe modo (local|http), executa, imprime resposta JSON em stdout.
+// Progresso e erros vao para stderr. Em modo --quiet, progresso e suprimido.
 func executarOperacaoAssinador(cmd *cobra.Command, op string) error {
 	payloadPath, _ := cmd.Flags().GetString("payload")
 	modo, _ := cmd.Flags().GetString("modo")
@@ -55,7 +57,7 @@ func executarOperacaoAssinador(cmd *cobra.Command, op string) error {
 			JarPath:        jarPath,
 			PortaPreferida: preferida,
 			PortaForcada:   forcada,
-			LogProgresso:   cmd.ErrOrStderr(),
+			LogProgresso:   stderrSeNaoQuiet(cmd),
 		})
 		if gErr != nil {
 			return gErr
@@ -73,4 +75,12 @@ func executarOperacaoAssinador(cmd *cobra.Command, op string) error {
 	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.SetIndent("", "  ")
 	return enc.Encode(resp)
+}
+
+// stderrSeNaoQuiet retorna cmd.ErrOrStderr() ou io.Discard quando --quiet esta ativo.
+func stderrSeNaoQuiet(cmd *cobra.Command) io.Writer {
+	if quiet {
+		return io.Discard
+	}
+	return cmd.ErrOrStderr()
 }

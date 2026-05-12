@@ -88,22 +88,23 @@ SignatureController              # Javalin — expoe /sign e /validate
 ```
 runner/
 ├── assinatura/         # CLI Go
-│   ├── cmd/            # Comandos cobra (criar, validar, servidor iniciar/parar/status)
+│   ├── cmd/            # Comandos cobra (criar, validar, servidor iniciar/parar/status); exit.go mapeia codigos
 │   ├── internal/
-│   │   ├── assinador/  # ClienteCLI (os/exec), ClienteHTTP (net/http), Garantir startup, LocalizarJar
+│   │   ├── assinador/  # ClienteCLI (os/exec), ClienteHTTP (net/http), Garantir startup, LocalizarJar, integration_test (tag)
 │   │   ├── porta/      # Auto-deteccao de porta livre (+20 janela)
 │   │   ├── logging/    # slog + OTel bridge
-│   │   ├── jdk/        # (planejado Sprint 4) deteccao e provisionamento JDK
+│   │   ├── jdk/        # Deteccao (JAVA_HOME/PATH/hubsaude) + download Adoptium (Sprint 4)
 │   │   └── state/      # Leitura/escrita de ~/.hubsaude/
 │   └── main.go
 ├── simulador/          # CLI Go
-│   ├── cmd/            # Comandos cobra (iniciar, parar, status)
+│   ├── cmd/            # Comandos cobra (iniciar, parar, status); exit.go
 │   ├── internal/
 │   │   ├── logging/    # slog + OTel bridge
 │   │   ├── state/      # Leitura/escrita de ~/.hubsaude/ (duplicado)
-│   │   ├── download/   # (planejado Sprint 4) Download do simulador.jar
-│   │   ├── jdk/        # (planejado Sprint 4) Deteccao e provisionamento JDK
-│   │   └── processo/   # (planejado Sprint 4) Gerenciamento do processo Java
+│   │   ├── porta/      # Auto-deteccao (duplicado de assinatura)
+│   │   ├── download/   # Download do simulador.jar via GitHub Releases + cache + --source + SHA-256
+│   │   ├── jdk/        # Deteccao e provisionamento JDK (duplicado de assinatura)
+│   │   └── processo/   # Iniciar/Parar/Consultar (HTTP shutdown -> SIGTERM -> Kill)
 │   └── main.go
 ├── assinador/          # Java — Maven
 │   └── src/main/java/br/gov/saude/assinador/
@@ -159,7 +160,7 @@ runner/
 
 ## Status Atual
 
-**Fase:** Sprint 3 parcialmente concluida (3.1–3.5). Itens 3.6–3.9 pendentes.
+**Fase:** Sprints 3 e 4 concluidas. Proxima: Sprint 5 (cross-compile, Cosign, releases).
 
 ### Sprint 1 — Concluida (2026-03-31)
 - CLI `assinatura` e `simulador` com cobra (subcomandos esqueleto)
@@ -175,8 +176,7 @@ runner/
 - Mapeador de erros (`MapeadorErro`) → HTTP status + exit code
 - Cobertura > 80% (excluindo `PKCS11SignatureService`)
 
-### Sprint 3 — Em andamento (14/04 — 27/04)
-**Concluido (3.1–3.5):**
+### Sprint 3 — Concluida (2026-04-27)
 - `SignatureController` Javalin + `AssinadorServidor` (`POST /sign`, `POST /validate`, `GET /health`, `POST /shutdown`)
   — `App.java` aceita `server` como primeiro arg; default continua sendo modo CLI
 - Pacote Go `internal/assinador` com `ClienteCLI` (modo local via `os/exec`) e `ClienteHTTP` (modo HTTP)
@@ -184,34 +184,63 @@ runner/
 - Pacote Go `internal/porta`: `LivreOuProxima` em janela de +20 portas
 - Wiring nos comandos cobra: `criar`, `validar`, `servidor iniciar/parar/status`
 - Localizacao do jar via `LocalizarJar()` (env `HUBSAUDE_ASSINADOR_JAR` → `~/.hubsaude/assinador/` → cwd → `assinador/target/`)
+- **3.6** Comando `servidor parar`: tenta `/shutdown` HTTP, fallback `Kill()`, limpa `state.json`, reporta `metodo` (http_shutdown | sigkill | stale_pid)
+- **3.7** Saida JSON pretty-printed em stdout (`enc.SetIndent("", "  ")`); progresso/erros via stderr; flag `--quiet` redireciona progresso para `io.Discard`
+- **3.8** Pacote `cmd/exit.go`: mapeia `*assinador.RespostaErro.Codigo` -> exit codes (`PARAM_AUSENTE=2`, `PARAM_INVALIDO=3`, `ALGORITMO_NAO_SUPORTADO=4`, `ASSINATURA_INVALIDA=5`, `DISPOSITIVO_INDISPONIVEL/PIN_INVALIDO=6`, `ERRO_INTERNO=7`, generico=1). `ExecuteOrExit()` emite erro JSON estruturado em stderr antes de `os.Exit`.
+- **3.9** Testes de integracao em `internal/assinador/integration_test.go` (build tag `integration`): sobem o jar real, validam modo local + HTTP + reuso de instancia. 5 testes passando com `go test -tags=integration`.
 
-**Pendente (3.6–3.9):**
-- Limpeza fina de `state.json` ao parar servidor
-- Formatacao explicita de stdout/stderr (saida ja usa JSON puro)
-- Propagacao estruturada de erros entre camadas (mapear `*RespostaErro` → exit code do CLI)
-- Testes de integracao end-to-end (CLI ↔ jar real, dois modos)
+### Sprint 4 — Concluida (2026-05-11)
+- **4.1 + 4.2** Pacote `internal/jdk/` (duplicado em assinatura e simulador):
+  - `Detectar()` busca em ordem: `JAVA_HOME` -> `java` no PATH -> `~/.hubsaude/jdk/*/bin/java`
+  - `parseMajor()` aceita `21.0.3`, `1.8.0_421` (legado), `22-ea`
+  - `Garantir()` baixa via Adoptium API quando ausente; suporta `linux/mac/windows` x `amd64/arm64`; extrai `.tar.gz` (Unix) ou `.zip` (Windows); valida SHA-256; persiste `hubsaude-meta.json`. Sobrescritivel em testes via `HUBSAUDE_ADOPTIUM_URL`.
+- **4.3 + 4.6** `processo.Iniciar()` (em `simulador/internal/processo`): tenta reusar via `state.json` + PID + health (`/actuator/health` ou `/health`); auto-detecta porta a partir do default 9090 (config) com janela +20; usa `--server.port=N` no jar; aguarda `aguardarPorta()` antes de gravar `state.json`.
+- **4.4 + 4.5** Pacote `simulador/internal/download/`:
+  - Cache em `~/.hubsaude/simulador/{simulador.jar, simulador-meta.json}`
+  - GitHub Releases via `https://api.github.com/repos/hubsaude/simulador/releases` (sobrescritivel via `HUBSAUDE_SIMULADOR_REPO`)
+  - Versao `latest` ou tag especifica via `--versao-simulador`
+  - Flag `--source <url>` aceita `http(s)://` e `file://` (versao = "custom", ignora GitHub Releases)
+  - Re-valida SHA-256 do cache contra metadados a cada chamada (deteccao de corrupcao)
+  - `ForcarRedownload` para ignorar cache
+- **4.7** `processo.Parar()`: tenta `/actuator/shutdown` -> `/shutdown` HTTP; se nao parar em 3s, envia SIGTERM (Unix); se nao parar em 5s, `Kill()`. Limpa `state.json` ao final. Reporta `metodo` (`http_shutdown` | `sigterm` | `sigkill` | `stale_pid` | `nao_estava_rodando`).
+- **4.8** `processo.Consultar()` + comando `status`: retorna `{registrado, running, pid, porta, iniciadoEm, pidVivo, versao, uptimeSegundos}`.
+- **4.9** Cobertura completa: 8 testes em `jdk/` (parseMajor, deteccao, download Adoptium com httptest + tar.gz fake + checksum divergente), 10 testes em `download/` (cache hit, versao especifica, --source http/file, --force, tag inexistente, sem assets), 9 testes em `processo/` (reuso, pid obsoleto, status, parar nao-rodando, parar stale, escolha de porta).
 
-### Sprint 4 — proximas acoes
-- Provisionamento JDK (Adoptium API)
-- Comandos `simulador iniciar/parar/status` integrados a download do `simulador.jar`
-- Cache + flag `--source` + verificacao SHA256
+### Sprint 5 — proximas acoes
+- Cross-compilation Go (Windows/Linux/macOS x amd64/arm64) via goreleaser
+- Empacotamento `.AppImage` (Linux) + `.dmg` (macOS) + `.exe` (Windows)
+- Integracao Cosign (OIDC) no release.yml
+- Checksums SHA-256 agregados
+- Testes de aceitacao por US
 
 ### Status de testes (validado localmente)
-- **Go:** 37 testes em `assinatura` + 17 em `simulador` = **54 passando**
+- **Go:** 50 testes em `assinatura` + 49 em `simulador` = **99 passando**
 - **Java:** 69 testes em `assinador` (cobertura > 80%)
-- **Total: 123 testes passando**
+- **Integracao (opt-in, `-tags=integration`):** 5 testes CLI ↔ jar real
+- **Total: 168 testes passando** (173 com integracao)
 - Tooling local: Go 1.26 (Homebrew), Java 21, Maven 3.9 via `mvnw`
 
 ---
 
 ## Cobertura de Testes
 
-**CLI Go (54 testes — `testing` + `testify`):**
-- `assinatura/cmd`: registro de subcomandos e flags (criar, validar, servidor)
+**CLI Go (99 testes — `testing` + `testify`):**
+- `assinatura/cmd`: registro de subcomandos e flags + mapeamento exit codes (`exit_test.go`)
 - `assinatura/internal/assinador`: ClienteCLI (stdin/stdout, RespostaErro estruturada), ClienteHTTP (sucesso, erro 4xx, /health, AguardarPronto), Garantir startup (reuso, PID obsoleto)
+- `assinatura/internal/jdk`: parseMajor, Detectar (PATH/JAVA_HOME/local), Garantir Adoptium com httptest + tar.gz fake, checksum divergente
 - `assinatura/internal/porta`: Disponivel, EmUso, LivreOuProxima (range +20)
 - `assinatura/internal/state`: leitura/escrita state.json + config.json, `t.TempDir()`, CleanStale
-- `simulador/cmd` + `simulador/internal/state`: idem ao assinatura
+- `simulador/cmd`: registro de comandos + flags
+- `simulador/internal/jdk`: idem assinatura (duplicado)
+- `simulador/internal/porta`: idem assinatura (duplicado)
+- `simulador/internal/download`: cache hit/miss, --source http/file, versao especifica, --force, SHA-256 esperado, tag inexistente
+- `simulador/internal/processo`: Iniciar (reuso, PID obsoleto, jar obrigatorio), Parar (nao-rodando, stale), Consultar, escolherPorta
+- `simulador/internal/state`: idem assinatura
+
+**Testes de integracao (opt-in, `-tags=integration`):**
+- `assinatura/internal/assinador/integration_test.go`: sobe `assinador.jar` real (5 testes)
+  - Modo local: sign/validate sucesso + payload invalido
+  - Modo HTTP: sign via Garantir + reuso de instancia
 
 **assinador.jar (69 testes — JUnit 5):**
 - `FakeSignatureService` / `PKCS11SignatureService` / `SignatureService`
@@ -222,9 +251,9 @@ runner/
 - Cobertura JaCoCo > 80% (excluindo `PKCS11SignatureService`)
 
 **Lacunas (a cobrir nas proximas sprints):**
-- Testes de integracao end-to-end CLI ↔ jar real (Sprint 3, item 3.9)
-- Download do JDK e simulador.jar (Sprint 4, mock de HTTP)
-- Provisionamento JDK multiplataforma (Sprint 4)
+- Testes de aceitacao alinhados aos criterios das US-01..05 (Sprint 5)
+- Empacotamento .AppImage / .dmg verificado em CI (Sprint 5)
+- Cosign OIDC verificacao end-to-end (Sprint 5)
 
 ---
 

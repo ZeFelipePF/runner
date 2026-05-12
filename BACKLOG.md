@@ -65,10 +65,10 @@
 | 3.3 | Implementar invocação via HTTP no CLI (`POST /sign`, `POST /validate`) | US-01 | Alta | ✅ |
 | 3.4 | Implementar startup do CLI: detecção de instância existente via `state.json` + PID | US-01 | Alta | ✅ |
 | 3.5 | Implementar auto-detecção de porta disponível (8088, 8089... +20) | US-01 | Alta | ✅ |
-| 3.6 | Gravar PID e porta em `state.json` ao iniciar servidor; limpar ao parar | US-01 | Alta | 🔲 |
-| 3.7 | Implementar formatação e exibição dos resultados no CLI (`stdout`/`stderr`) | US-01 | Média | 🔲 |
-| 3.8 | Implementar propagação estruturada de erros entre as camadas | US-01 | Alta | 🔲 |
-| 3.9 | Escrever testes de integração (CLI ↔ Assinador, modo direto e HTTP) | US-01 | Alta | 🔲 |
+| 3.6 | Gravar PID e porta em `state.json` ao iniciar servidor; limpar ao parar | US-01 | Alta | ✅ |
+| 3.7 | Implementar formatação e exibição dos resultados no CLI (`stdout`/`stderr`) | US-01 | Média | ✅ |
+| 3.8 | Implementar propagação estruturada de erros entre as camadas | US-01 | Alta | ✅ |
+| 3.9 | Escrever testes de integração (CLI ↔ Assinador, modo direto e HTTP) | US-01 | Alta | ✅ |
 
 **Entregável:** fluxo completo de criação e validação de assinatura nos modos local e HTTP; startup detecta instância existente; porta auto-selecionada; testes de integração passando.
 
@@ -80,15 +80,15 @@
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
-| 4.1 | Implementar detecção do JDK na máquina (JAVA_HOME, PATH, `~/.hubsaude/jdk/`) | US-04 | Alta | 🔲 |
-| 4.2 | Implementar download automático do JDK 21 Temurin via Adoptium API (Windows, Linux, macOS) | US-04 | Alta | 🔲 |
-| 4.3 | Implementar comando `simulador iniciar` com auto-detecção de porta | US-03 | Alta | 🔲 |
-| 4.4 | Implementar download dinâmico do `simulador.jar` via GitHub Releases (com cache local e flag `--source`) | US-03 | Alta | 🔲 |
-| 4.5 | Implementar verificação de versão e integridade (SHA256) do `simulador.jar` | US-03 | Alta | 🔲 |
-| 4.6 | Implementar startup do CLI `simulador`: `state.json`, PID, porta | US-03 | Alta | 🔲 |
-| 4.7 | Implementar comando `simulador parar` (HTTP shutdown + fallback SIGTERM) | US-03 | Alta | 🔲 |
-| 4.8 | Implementar comando `simulador status` | US-03 | Média | 🔲 |
-| 4.9 | Escrever testes para provisionamento JDK e gerenciamento do Simulador | US-03/04 | Alta | 🔲 |
+| 4.1 | Implementar detecção do JDK na máquina (JAVA_HOME, PATH, `~/.hubsaude/jdk/`) | US-04 | Alta | ✅ |
+| 4.2 | Implementar download automático do JDK 21 Temurin via Adoptium API (Windows, Linux, macOS) | US-04 | Alta | ✅ |
+| 4.3 | Implementar comando `simulador iniciar` com auto-detecção de porta | US-03 | Alta | ✅ |
+| 4.4 | Implementar download dinâmico do `simulador.jar` via GitHub Releases (com cache local e flag `--source`) | US-03 | Alta | ✅ |
+| 4.5 | Implementar verificação de versão e integridade (SHA256) do `simulador.jar` | US-03 | Alta | ✅ |
+| 4.6 | Implementar startup do CLI `simulador`: `state.json`, PID, porta | US-03 | Alta | ✅ |
+| 4.7 | Implementar comando `simulador parar` (HTTP shutdown + fallback SIGTERM) | US-03 | Alta | ✅ |
+| 4.8 | Implementar comando `simulador status` | US-03 | Média | ✅ |
+| 4.9 | Escrever testes para provisionamento JDK e gerenciamento do Simulador | US-03/04 | Alta | ✅ |
 
 **Entregável:** CLI gerencia ciclo de vida do Simulador; JDK provisionado automaticamente; `--source` funciona; testes passando nas 3 plataformas.
 

@@ -14,9 +14,11 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "assinatura",
-	Short: "CLI para invocar o assinador.jar",
-	Long:  "CLI multiplataforma que invoca operacoes de assinatura digital via assinador.jar.",
+	Use:           "assinatura",
+	Short:         "CLI para invocar o assinador.jar",
+	Long:          "CLI multiplataforma que invoca operacoes de assinatura digital via assinador.jar.",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var cleanup func()
 		logger, cleanup = logging.Setup(verbose, quiet)

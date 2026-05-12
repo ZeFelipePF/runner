@@ -14,9 +14,11 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "simulador",
-	Short: "CLI para gerenciar o Simulador HubSaude",
-	Long:  "CLI multiplataforma que gerencia o ciclo de vida do simulador.jar do HubSaude.",
+	Use:           "simulador",
+	Short:         "CLI para gerenciar o Simulador HubSaude",
+	Long:          "CLI multiplataforma que gerencia o ciclo de vida do simulador.jar do HubSaude.",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		var cleanup func()
 		logger, cleanup = logging.Setup(verbose, quiet)

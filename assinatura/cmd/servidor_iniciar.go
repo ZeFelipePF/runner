@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/hubsaude/runner/assinatura/internal/assinador"
@@ -48,8 +47,16 @@ var servidorIniciarCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Fprintf(cmd.OutOrStdout(), "{\"status\":\"OK\",\"porta\":%d,\"pid\":%d,\"reusado\":%t}\n",
-			srv.Porta, srv.PID, srv.Reusado)
+		status := "STARTED"
+		if srv.Reusado {
+			status = "REUSED"
+		}
+		emitirJSON(cmd.OutOrStdout(), map[string]any{
+			"status":  status,
+			"porta":   srv.Porta,
+			"pid":     srv.PID,
+			"reusado": srv.Reusado,
+		})
 		return nil
 	},
 }

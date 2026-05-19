@@ -1,0 +1,80 @@
+version: 2
+project_name: runner
+
+before:
+  hooks:
+    - cmd: go mod tidy
+      dir: ./assinatura
+    - cmd: go mod tidy
+      dir: ./simulador
+
+builds:
+  - id: assinatura
+    dir: ./assinatura
+    main: .
+    binary: assinatura
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/hubsaude/runner/assinatura/cmd.Version={{ .Version }}
+      - -X github.com/hubsaude/runner/assinatura/cmd.GitCommit={{ .ShortCommit }}
+
+  - id: simulador
+    dir: ./simulador
+    main: .
+    binary: simulador
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    goarch:
+      - amd64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+      - -X github.com/hubsaude/runner/simulador/cmd.Version={{ .Version }}
+      - -X github.com/hubsaude/runner/simulador/cmd.GitCommit={{ .ShortCommit }}
+
+archives:
+  - id: binaries
+    ids:
+      - assinatura
+      - simulador
+    formats:
+      - binary
+    name_template: >-
+      {{ .Binary }}-{{ .Version }}-
+      {{- if eq .Os "darwin" }}macos
+      {{- else }}{{ .Os }}{{ end -}}
+      -{{ .Arch }}
+
+checksum:
+  name_template: checksums-sha256.txt
+  algorithm: sha256
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-snapshot"
+
+release:
+  disable: true
+
+changelog:
+  disable: false
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"

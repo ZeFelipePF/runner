@@ -160,7 +160,7 @@ runner/
 
 ## Status Atual
 
-**Fase:** Sprints 3 e 4 concluidas. Proxima: Sprint 5 (cross-compile, Cosign, releases).
+**Fase:** Sprints 3, 4 e 5 concluidas. Proxima: Sprint 6 (documentacao + polimento + entrega final).
 
 ### Sprint 1 — Concluida (2026-03-31)
 - CLI `assinatura` e `simulador` com cobra (subcomandos esqueleto)
@@ -206,18 +206,36 @@ runner/
 - **4.8** `processo.Consultar()` + comando `status`: retorna `{registrado, running, pid, porta, iniciadoEm, pidVivo, versao, uptimeSegundos}`.
 - **4.9** Cobertura completa: 8 testes em `jdk/` (parseMajor, deteccao, download Adoptium com httptest + tar.gz fake + checksum divergente), 10 testes em `download/` (cache hit, versao especifica, --source http/file, --force, tag inexistente, sem assets), 9 testes em `processo/` (reuso, pid obsoleto, status, parar nao-rodando, parar stale, escolha de porta).
 
-### Sprint 5 — proximas acoes
-- Cross-compilation Go (Windows/Linux/macOS x amd64/arm64) via goreleaser
-- Empacotamento `.AppImage` (Linux) + `.dmg` (macOS) + `.exe` (Windows)
-- Integracao Cosign (OIDC) no release.yml
-- Checksums SHA-256 agregados
-- Testes de aceitacao por US
+### Sprint 5 — Concluida (2026-05-19)
+- **5.1** `.goreleaser.yaml` na raiz cross-compila ambos os CLIs para `linux/windows/darwin x amd64`. Multi-modulo via `dir:` por build; ldflags injetam `Version` e `GitCommit` em `cmd.Version`/`cmd.GitCommit`. Nome final: `<bin>-<versao>-<so>-<arch>[.exe]` (darwin renomeado para `macos`).
+- **5.2** Scripts em `scripts/`:
+  - `build-appimage.sh` — empacota binario Linux como `.AppImage` (cria AppDir, AppRun, .desktop, icone PNG placeholder; usa `appimagetool` extraido sem FUSE)
+  - `build-dmg.sh` — empacota binario macOS como `.dmg` via `hdiutil create -format UDZO -fs HFS+`
+  - `rename-windows.sh` — renomeia binario Windows para o padrao da spec (.exe ja produzido pelo Go)
+- **5.3** `release.yml` constroi `assinador.jar` via Maven e renomeia para `assinador-<versao>.jar`.
+- **5.4** Checksums SHA-256 agregados em `checksums-sha256.txt` (gerado pelo `sha256sum * | sort` no job `release`).
+- **5.5** Cosign keyless OIDC via `sigstore/cosign-installer@v3` — gera `<artefato>.sig` + `<artefato>.pem` para cada item (exceto `.sig`/`.pem`/checksums). Permissoes `id-token: write` + `contents: write` no job `release`.
+- **5.6** `release.yml` acionado por tag `v*` (versao derivada de `${GITHUB_REF_NAME#v}`). `workflow_dispatch` permite dry-run sem publicar. `softprops/action-gh-release@v2` publica com release notes auto-geradas e instrucoes Cosign no body.
+- **5.7** Testes de aceitacao opt-in (build tag `acceptance`):
+  - `assinatura/cmd/acceptance_test.go` — 8 testes que constroem o binario via `TestMain` e validam US-01 + US-02 (help, versao, criar/validar modo local com jar real, payload invalido com codigo de saida estruturado, servidor status/parar, payload inexistente)
+  - `simulador/cmd/acceptance_test.go` — 5 testes que validam US-03 (help, versao, status sem nada rodando, parar sem nada rodando, flag `--source` aceita)
+  - US-04 (JDK) ja coberta pelos testes unitarios profundos em `internal/jdk/`
+  - US-05 validada pela execucao end-to-end do `release.yml`
+- **5.8** Job `acceptance` no `ci.yml` em matrix 3 SOs (Ubuntu/Windows/macOS): builda `assinador.jar`, exporta `HUBSAUDE_ASSINADOR_JAR`, roda `go test -tags=acceptance ./cmd -run Aceitacao`. Job adicional `release-config` valida o `.goreleaser.yaml` com `goreleaser check`.
+
+### Sprint 6 — proximas acoes
+- Manual do usuario para os dois CLIs
+- Documentacao tecnica de integracao + PKCS#11
+- Guia de instalacao (download + verificacao Cosign)
+- Exemplos no README
+- Publicacao final via tag `v1.0.0`
 
 ### Status de testes (validado localmente)
 - **Go:** 50 testes em `assinatura` + 49 em `simulador` = **99 passando**
 - **Java:** 69 testes em `assinador` (cobertura > 80%)
 - **Integracao (opt-in, `-tags=integration`):** 5 testes CLI ↔ jar real
-- **Total: 168 testes passando** (173 com integracao)
+- **Aceitacao (opt-in, `-tags=acceptance`):** 8 em `assinatura` + 5 em `simulador` = **13 testes** validando US-01..US-03 end-to-end via binario
+- **Total: 168 testes passando** (173 com integracao, 186 com aceitacao)
 - Tooling local: Go 1.26 (Homebrew), Java 21, Maven 3.9 via `mvnw`
 
 ---
@@ -242,6 +260,10 @@ runner/
   - Modo local: sign/validate sucesso + payload invalido
   - Modo HTTP: sign via Garantir + reuso de instancia
 
+**Testes de aceitacao (opt-in, `-tags=acceptance`):**
+- `assinatura/cmd/acceptance_test.go` (8 testes): constroi binario via `TestMain`, exec-uta e valida US-01/02 — help lista subcomandos, `versao` imprime versao injetada via ldflags, `criar`/`validar` modo local com jar real, payload invalido retorna codigo de saida estruturado + erro em stderr, `servidor status`/`parar` sem nada rodando, payload inexistente.
+- `simulador/cmd/acceptance_test.go` (5 testes): mesmo padrao, valida US-03 — help, `versao`, `status`/`parar` sem nada rodando, `--source` com URL custom (verifica que flag e parseada antes de erro de download).
+
 **assinador.jar (69 testes — JUnit 5):**
 - `FakeSignatureService` / `PKCS11SignatureService` / `SignatureService`
 - `ValidadorFHIR`: campos obrigatorios, base64, algoritmo, hashes SHA-256
@@ -250,10 +272,11 @@ runner/
 - `SignatureController`: /sign, /validate, /health, /shutdown via HTTP real
 - Cobertura JaCoCo > 80% (excluindo `PKCS11SignatureService`)
 
-**Lacunas (a cobrir nas proximas sprints):**
-- Testes de aceitacao alinhados aos criterios das US-01..05 (Sprint 5)
-- Empacotamento .AppImage / .dmg verificado em CI (Sprint 5)
-- Cosign OIDC verificacao end-to-end (Sprint 5)
+**Lacunas (a cobrir na Sprint 6):**
+- Manual do usuario (`assinatura` + `simulador`) e guia de instalacao com Cosign verify
+- README + exemplos de uso
+- Documentacao tecnica de integracao + PKCS#11
+- Publicacao final via tag `v1.0.0` (executa o `release.yml` end-to-end)
 
 ---
 
@@ -272,8 +295,10 @@ assinador-1.0.0.jar
 checksums-sha256.txt
 ```
 
-Empacotamento `.AppImage` (Linux) e `.dmg` (macOS) esta planejado para Sprint 5.
-Ver `planejamento/ci-cd.md` para os workflows prontos.
+Empacotamento, assinatura e checksums sao gerados automaticamente pelo
+`.github/workflows/release.yml` quando uma tag `v*` e enviada (ver scripts
+auxiliares em `scripts/build-appimage.sh`, `scripts/build-dmg.sh`,
+`scripts/rename-windows.sh` e o `.goreleaser.yaml` na raiz).
 
 ---
 

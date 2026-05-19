@@ -100,14 +100,14 @@
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
-| 5.1 | Configurar cross-compilation Go para Windows, Linux e macOS (amd64) | US-05 | Alta | 🔲 |
-| 5.2 | Configurar empacotamento: `.exe` (Win), `.AppImage` (Linux), `.dmg` (macOS) | US-05 | Alta | 🔲 |
-| 5.3 | Incluir `assinador.jar` como artefato da release | US-05 | Alta | 🔲 |
-| 5.4 | Gerar checksums SHA256 para todos os artefatos | US-05 | Alta | 🔲 |
-| 5.5 | Integrar Cosign no pipeline de release (OIDC + `.sig` + `.pem` por artefato) | §9 | Alta | 🔲 |
-| 5.6 | Configurar versionamento SemVer e GitHub Releases automáticas (tag `v*`) | US-05 | Média | 🔲 |
-| 5.7 | Escrever testes de aceitação baseados nos critérios das US-01 a US-05 | Todas | Alta | 🔲 |
-| 5.8 | Executar testes de aceitação nas 3 plataformas (CI matrix) | Todas | Alta | 🔲 |
+| 5.1 | Configurar cross-compilation Go para Windows, Linux e macOS (amd64) | US-05 | Alta | ✅ |
+| 5.2 | Configurar empacotamento: `.exe` (Win), `.AppImage` (Linux), `.dmg` (macOS) | US-05 | Alta | ✅ |
+| 5.3 | Incluir `assinador.jar` como artefato da release | US-05 | Alta | ✅ |
+| 5.4 | Gerar checksums SHA256 para todos os artefatos | US-05 | Alta | ✅ |
+| 5.5 | Integrar Cosign no pipeline de release (OIDC + `.sig` + `.pem` por artefato) | §9 | Alta | ✅ |
+| 5.6 | Configurar versionamento SemVer e GitHub Releases automáticas (tag `v*`) | US-05 | Média | ✅ |
+| 5.7 | Escrever testes de aceitação baseados nos critérios das US-01 a US-05 | Todas | Alta | ✅ |
+| 5.8 | Executar testes de aceitação nas 3 plataformas (CI matrix) | Todas | Alta | ✅ |
 
 **Entregável:** release no GitHub com binários assinados (`.exe`, `.AppImage`, `.dmg`) + `assinador.jar` para 3 plataformas; todos os testes de aceitação passando.
 

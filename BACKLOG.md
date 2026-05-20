@@ -119,10 +119,10 @@
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
-| 6.1 | Escrever manual do usuário (`assinatura` e `simulador`) | §7 | Alta | 🔲 |
-| 6.2 | Escrever documentação técnica da integração (CLI ↔ Assinador, `SignatureService`, PKCS#11) | §7 | Alta | 🔲 |
-| 6.3 | Escrever guia de instalação (download, verificação com Cosign, primeiros passos) | §7 | Alta | 🔲 |
-| 6.4 | Incluir exemplos de uso no README e documentação | §7 | Média | 🔲 |
+| 6.1 | Escrever manual do usuário (`assinatura` e `simulador`) | §7 | Alta | ✅ |
+| 6.2 | Escrever documentação técnica da integração (CLI ↔ Assinador, `SignatureService`, PKCS#11) | §7 | Alta | ✅ |
+| 6.3 | Escrever guia de instalação (download, verificação com Cosign, primeiros passos) | §7 | Alta | ✅ |
+| 6.4 | Incluir exemplos de uso no README e documentação | §7 | Média | ✅ |
 | 6.5 | Revisar cobertura de testes e preencher lacunas | Todas | Média | 🔲 |
 | 6.6 | Revisar tratamento de erros e mensagens ao usuário | US-01/02 | Média | 🔲 |
 | 6.7 | Corrigir bugs e pendências acumuladas | Todas | Alta | 🔲 |

@@ -23,5 +23,7 @@ Cada arquivo cobre um aspecto do projeto. Use este indice para navegacao rapida.
 
 ## Status
 
-Fase atual: **Planejamento** - decisoes tecnicas pendentes.
-Investigacao de parametros FHIR pendente (ver entregavel-cli-assinatura.md e entregavel-assinador.md).
+Fase atual: **Sprint 6 — documentacao e entrega final** (Sprints 1-5 concluidas).
+Documentacao de uso entregue em [`../docs/`](../docs/): manual do usuario, guia de
+instalacao, documentacao tecnica e exemplos (itens 6.1-6.4 do BACKLOG).
+Decisoes tecnicas e investigacao FHIR ja consolidadas (ver decisoes-tecnicas.md e contrato-fhir.md).

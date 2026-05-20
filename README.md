@@ -74,19 +74,25 @@ cosign verify-blob \
 
 ```bash
 # Criar assinatura digital (modo HTTP — padrão, inicia o servidor automaticamente)
-assinatura criar --message-file documento.json --private-key certificado.p12
+assinatura criar --payload pedido-assinatura.json
 
 # Criar assinatura (modo local — invocação direta, sem servidor)
-assinatura criar --message-file documento.json --private-key certificado.p12 --modo local
+assinatura criar --payload pedido-assinatura.json --modo local
 
 # Validar assinatura
-assinatura validar --message-file documento.json --signature <base64> --public-key cert.pem
+assinatura validar --payload pedido-validacao.json
+
+# Ler o payload do stdin
+cat pedido-assinatura.json | assinatura criar --payload -
 
 # Gerenciar o servidor manualmente
 assinatura servidor iniciar [--porta 8088]
 assinatura servidor status
 assinatura servidor parar
 ```
+
+O `--payload` é um arquivo JSON com os parâmetros FHIR. Veja payloads completos em
+[docs/exemplos.md](docs/exemplos.md) e o contrato em [docs/tecnico.md](docs/tecnico.md).
 
 ### CLI simulador
 
@@ -126,6 +132,8 @@ O exit code reflete o código de erro retornado pelo `assinador.jar`:
 | 7 | `ERRO_INTERNO` | Falha interna do `assinador.jar` |
 
 Erros são emitidos em stderr como JSON: `{"error": "PARAM_AUSENTE", "message": "..."}`. Saída de sucesso vai para stdout, sempre como JSON pretty-printed.
+
+> Os códigos 5 e 6 estão **reservados** para a evolução do PKCS#11 e da validação criptográfica real; o `assinador.jar` em modo simulado não os emite hoje.
 
 ### Variáveis de ambiente
 
@@ -193,6 +201,15 @@ runner/
 ```
 
 ## Documentação
+
+Guias de uso (`docs/`):
+
+- [Manual do Usuário](docs/manual-usuario.md) — referência de comandos, flags e troubleshooting
+- [Guia de Instalação](docs/instalacao.md) — download, verificação com Cosign, primeiros passos
+- [Documentação Técnica](docs/tecnico.md) — arquitetura, contratos HTTP/CLI, `SignatureService`, PKCS#11
+- [Exemplos de Uso](docs/exemplos.md) — payloads completos prontos para copiar
+
+Projeto:
 
 - [Backlog de Entrega](BACKLOG.md)
 - [Planejamento Técnico](planejamento/README.md)

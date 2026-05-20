@@ -96,10 +96,15 @@ Exemplo:
 
 ## Tarefas de Implementacao
 
-- [ ] Escrever manual do usuario
-- [ ] Escrever documentacao tecnica (API, fluxos, arquitetura)
-- [ ] Escrever guia de instalacao
-- [ ] Escrever exemplos de uso
-- [ ] Atualizar/criar diagramas C4
-- [ ] Implementar --help em todos os comandos
-- [ ] Revisar README.md do projeto
+- [x] Escrever manual do usuario (`docs/manual-usuario.md`) — Sprint 6 (6.1)
+- [x] Escrever documentacao tecnica (API, fluxos, arquitetura) (`docs/tecnico.md`) — Sprint 6 (6.2)
+- [x] Escrever guia de instalacao (`docs/instalacao.md`) — Sprint 6 (6.3)
+- [x] Escrever exemplos de uso (`docs/exemplos.md`) — Sprint 6 (6.4)
+- [x] Revisar README.md do projeto (corrigir flags `--payload`, links para `docs/`) — Sprint 6 (6.4)
+- [x] Implementar --help em todos os comandos (cobra; gerado automaticamente desde Sprint 1)
+- [ ] Atualizar/criar diagramas C4 (`diagramas/`)
+
+> Nota de fidelidade: as flags reais dos comandos `criar`/`validar` sao
+> `--payload`, `--modo`, `--porta`, `--jar` (e nao `--arquivo`/`--certificado`/
+> `--algoritmo` como esbocado nos exemplos acima). A documentacao em `docs/`
+> reflete o codigo atual.

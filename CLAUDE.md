@@ -160,7 +160,7 @@ runner/
 
 ## Status Atual
 
-**Fase:** Sprints 3, 4 e 5 concluidas. Proxima: Sprint 6 (documentacao + polimento + entrega final).
+**Fase:** Sprints 3, 4 e 5 concluidas. Sprint 6 em andamento (docs 6.1-6.4 concluidas; faltam 6.5-6.8).
 
 ### Sprint 1 — Concluida (2026-03-31)
 - CLI `assinatura` e `simulador` com cobra (subcomandos esqueleto)
@@ -223,12 +223,13 @@ runner/
   - US-05 validada pela execucao end-to-end do `release.yml`
 - **5.8** Job `acceptance` no `ci.yml` em matrix 3 SOs (Ubuntu/Windows/macOS): builda `assinador.jar`, exporta `HUBSAUDE_ASSINADOR_JAR`, roda `go test -tags=acceptance ./cmd -run Aceitacao`. Job adicional `release-config` valida o `.goreleaser.yaml` com `goreleaser check`.
 
-### Sprint 6 — proximas acoes
-- Manual do usuario para os dois CLIs
-- Documentacao tecnica de integracao + PKCS#11
-- Guia de instalacao (download + verificacao Cosign)
-- Exemplos no README
-- Publicacao final via tag `v1.0.0`
+### Sprint 6 — em andamento
+- **6.1** Manual do usuario (`docs/manual-usuario.md`): conceitos local vs http, flags globais, referencia de `assinatura criar/validar/servidor` e `simulador iniciar/parar/status`, exit codes, troubleshooting, layout de `~/.hubsaude/`.
+- **6.2** Documentacao tecnica (`docs/tecnico.md`): componentes, fluxo de dados, contrato HTTP (`/sign`, `/validate`, `/health`, `/shutdown`) + contrato CLI do jar, design `SignatureService`/PKCS#11, startup inteligente, provisionamento JDK, download do simulador, estado local, distribuicao/Cosign.
+- **6.3** Guia de instalacao (`docs/instalacao.md`): download por plataforma, checksums, verificacao Cosign (com `--certificate-identity-regexp`/`--certificate-oidc-issuer`), instalacao Windows/Linux/macOS, modo offline, verificacao pos-instalacao.
+- **6.4** Exemplos (`docs/exemplos.md`) com payloads validos completos; README corrigido (flags reais `--payload`/`--modo`/`--porta`/`--jar`; antes documentava `--message-file`/`--private-key` inexistentes) + links para `docs/`.
+- **Pendentes:** 6.5 (cobertura), 6.6 (revisao de erros/mensagens), 6.7 (bugs), 6.8 (publicacao final via tag `v1.0.0`).
+- **Lacuna conhecida:** divergencia de enums de erro entre Go (`cmd/exit.go`: codigos 5/6 `ASSINATURA_INVALIDA`/`DISPOSITIVO_INDISPONIVEL`) e Java (`AssinadorException.Codigo`: `PAYLOAD_MUITO_GRANDE`); 5/6 documentados como reservados. Avaliar alinhamento em 6.6.
 
 ### Status de testes (validado localmente)
 - **Go:** 50 testes em `assinatura` + 49 em `simulador` = **99 passando**

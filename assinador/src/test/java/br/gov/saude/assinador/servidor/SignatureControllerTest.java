@@ -32,7 +32,11 @@ class SignatureControllerTest {
 
     @BeforeEach
     void iniciar() {
-        app = AssinadorServidor.iniciar(0, new FakeSignatureService());
+        // Monta o servidor com acao de shutdown no-op para que o teste de /shutdown
+        // nao chame System.exit(0) e derrube a JVM do runner de testes.
+        app = Javalin.create(cfg -> cfg.showJavalinBanner = false);
+        new SignatureController(new FakeSignatureService(), () -> { /* no-op em teste */ }).registrar(app);
+        app.start(0);
         porta = app.port();
         client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(2)).build();
     }

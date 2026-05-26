@@ -23,7 +23,7 @@ O Sistema Runner facilita a execução de aplicações Java via linha de comando
 
 ## Arquitetura
 
-Diagramas C4 (PlantUML) em [`diagramas/`](diagramas/):
+O design completo (C4) está documentado em [`design.md`](design.md). Diagramas C4 (PlantUML) em [`diagramas/`](diagramas/):
 
 - [Nível 1 — Contexto](diagramas/contexto.puml) ([imagens/contexto.svg](diagramas/imagens/contexto.svg))
 - [Nível 2 — Contêineres](diagramas/conteineres.puml) ([imagens/conteineres.svg](diagramas/imagens/conteineres.svg))
@@ -148,7 +148,7 @@ O exit code reflete o código de erro retornado pelo `assinador.jar`:
 
 Erros são emitidos em stderr como JSON: `{"error": "PARAM_AUSENTE", "message": "..."}`. Saída de sucesso vai para stdout, sempre como JSON pretty-printed.
 
-> Os códigos 5 e 6 estão **reservados** para a evolução do PKCS#11 e da validação criptográfica real; o `assinador.jar` em modo simulado não os emite hoje.
+> O código 6 (`DISPOSITIVO_INDISPONIVEL`/`PIN_INVALIDO`) é emitido ao usar o provider PKCS#11 (token/smartcard); no modo simulado padrão (`FakeSignatureService`) ele não ocorre. Os enums de erro de Go (`assinatura/cmd/exit.go`) e Java (`erro/MapeadorErro`) estão totalmente alinhados.
 
 ### Variáveis de ambiente
 
@@ -163,7 +163,7 @@ Erros são emitidos em stderr como JSON: `{"error": "PARAM_AUSENTE", "message": 
 ### Pré-requisitos
 
 - Go 1.22+
-- JDK 21 (ou provisionado automaticamente ao executar os CLIs)
+- JDK 21 para o build do `assinador.jar` (o runtime é provisionado automaticamente ao executar os CLIs). O build também funciona sob JDK 22–24 — o JaCoCo está em 0.8.13, que instrumenta bytecode até Java 24.
 
 ### Build
 

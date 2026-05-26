@@ -23,7 +23,19 @@ Cada arquivo cobre um aspecto do projeto. Use este indice para navegacao rapida.
 
 ## Status
 
-Fase atual: **Sprint 6 — documentacao e entrega final** (Sprints 1-5 concluidas).
-Documentacao de uso entregue em [`../docs/`](../docs/): manual do usuario, guia de
-instalacao, documentacao tecnica e exemplos (itens 6.1-6.4 do BACKLOG).
+Fase atual: **Sprint 6 — entrega final** (Sprints 1-5 concluidas).
+
+- **Documentacao (6.1-6.4):** concluida em [`../docs/`](../docs/) — manual do usuario, guia de
+  instalacao, documentacao tecnica e exemplos.
+- **Conformidade com a spec do professor (6.5-6.14):** concluida — porta 8443, `/api/info`,
+  provisionamento de JRE, `--timeout`, diagramas C4 (com SVGs renderizados), PKCS#11 funcional,
+  requisitos nao-funcionais (ISO 25010), estrategia `release.json`. Rastreabilidade item-a-item
+  em [pendencias-spec.md](pendencias-spec.md).
+- **Polimento (6.15-6.17):** concluido — cobertura JaCoCo **88,6%** (gate 80%), **74 testes**
+  Java + suites Go verdes; enums de erro Go ↔ Java alinhados; corrigidos os defeitos de build
+  (JaCoCo 0.8.13 para Java 24; acao de `/shutdown`/auto-shutdown tornada injetavel para nao
+  chamar `System.exit` durante os testes).
+- **Pendente (6.18):** apenas a publicacao da release `v1.0.0` (push da tag `v*` dispara o
+  `release.yml` — acao manual do mantenedor).
+
 Decisoes tecnicas e investigacao FHIR ja consolidadas (ver decisoes-tecnicas.md e contrato-fhir.md).

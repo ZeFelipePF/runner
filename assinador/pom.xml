@@ -142,7 +142,18 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
+                <!-- 0.8.13+ suporta bytecode Java 24 (major 68). Necessario quando o
+                     build roda sob JDK > 21; compativel com JDK 21 do CI. -->
+                <version>0.8.13</version>
+                <!-- PKCS11SignatureService exige dispositivo fisico/SoftHSM2 (testes
+                     opt-in com -Dgroups=pkcs11); excluido do relatorio e do gate de
+                     cobertura no nivel do plugin (exclude por classe so funciona aqui,
+                     nao em <rule><element>BUNDLE</element>). -->
+                <configuration>
+                    <excludes>
+                        <exclude>br/gov/saude/assinador/servico/PKCS11SignatureService.class</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -161,9 +172,6 @@
                             <rules>
                                 <rule>
                                     <element>BUNDLE</element>
-                                    <excludes>
-                                        <exclude>br.gov.saude.assinador.servico.PKCS11SignatureService</exclude>
-                                    </excludes>
                                     <limits>
                                         <limit>
                                             <counter>LINE</counter>

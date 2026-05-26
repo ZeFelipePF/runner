@@ -44,6 +44,9 @@ func CodigoSaida(err error) int {
 			return ExitDispositivo
 		case "ERRO_INTERNO":
 			return ExitInterno
+		case "PAYLOAD_MUITO_GRANDE":
+			// MapeadorErro (Java) mapeia este codigo para exit 1 (HTTP 413).
+			return ExitGenerico
 		}
 		return ExitGenerico
 	}

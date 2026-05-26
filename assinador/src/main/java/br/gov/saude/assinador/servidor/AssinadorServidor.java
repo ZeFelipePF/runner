@@ -35,12 +35,25 @@ public final class AssinadorServidor {
     }
 
     /**
-     * Inicia o servidor com auto-shutdown opcional por inatividade.
+     * Inicia o servidor com auto-shutdown opcional por inatividade. Usa
+     * {@code System.exit(0)} como acao de desligamento (comportamento de producao).
      *
      * @param idleTimeout duracao maxima sem requisicoes antes de desligar.
      *                    {@code Duration.ZERO} ou negativa desativa o timeout.
      */
     public static Javalin iniciar(int porta, SignatureService servico, Duration idleTimeout) {
+        return iniciar(porta, servico, idleTimeout, () -> System.exit(0));
+    }
+
+    /**
+     * Inicia o servidor permitindo injetar a acao de desligamento. Testes passam
+     * um no-op/latch para exercitar o auto-shutdown e o endpoint {@code /shutdown}
+     * sem encerrar a JVM do runner de testes.
+     *
+     * @param aoDesligar acao executada no auto-shutdown e no endpoint /shutdown.
+     */
+    public static Javalin iniciar(int porta, SignatureService servico,
+                                  Duration idleTimeout, Runnable aoDesligar) {
         AtomicReference<Instant> ultimoAcesso = new AtomicReference<>(Instant.now());
         Javalin app = Javalin.create(cfg -> cfg.showJavalinBanner = false);
         boolean timeoutAtivo = idleTimeout != null
@@ -48,12 +61,12 @@ public final class AssinadorServidor {
         if (timeoutAtivo) {
             app.before(ctx -> ultimoAcesso.set(Instant.now()));
         }
-        new SignatureController(servico).registrar(app);
+        new SignatureController(servico, aoDesligar).registrar(app);
         app.start(porta);
         logger.info("assinador HTTP iniciado na porta {}", app.port());
 
         if (timeoutAtivo) {
-            agendarAutoShutdown(app, ultimoAcesso, idleTimeout);
+            agendarAutoShutdown(app, ultimoAcesso, idleTimeout, aoDesligar);
             logger.info("auto-shutdown ativo: desliga apos {} sem requisicoes", idleTimeout);
         }
         return app;
@@ -61,13 +74,14 @@ public final class AssinadorServidor {
 
     private static void agendarAutoShutdown(Javalin app,
                                             AtomicReference<Instant> ultimoAcesso,
-                                            Duration idleTimeout) {
+                                            Duration idleTimeout,
+                                            Runnable aoDesligar) {
         ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> {
             Thread t = new Thread(r, "assinador-idle-watcher");
             t.setDaemon(true);
             return t;
         });
-        long checkSegundos = Math.max(5, Math.min(30, idleTimeout.toSeconds() / 4));
+        long checkSegundos = Math.max(1, Math.min(30, idleTimeout.toSeconds() / 4));
         scheduler.scheduleAtFixedRate(() -> {
             Duration ocioso = Duration.between(ultimoAcesso.get(), Instant.now());
             if (ocioso.compareTo(idleTimeout) >= 0) {
@@ -77,7 +91,7 @@ public final class AssinadorServidor {
                     app.stop();
                 } finally {
                     scheduler.shutdown();
-                    new Thread(() -> System.exit(0), "assinador-exit").start();
+                    aoDesligar.run();
                 }
             }
         }, checkSegundos, checkSegundos, TimeUnit.SECONDS);

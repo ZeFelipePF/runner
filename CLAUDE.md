@@ -74,9 +74,9 @@ Se a porta 8088 estiver ocupada, o CLI auto-detecta a proxima livre (8089, 8090.
 ```
 SignatureService (interface)
   ├── FakeSignatureService       # Simulacao — implementacao principal entregue
-  └── PKCS11SignatureService     # Esqueleto — dispositivo fisico nao disponivel
+  └── PKCS11SignatureService     # Funcional (SunPKCS11); testes opt-in com SoftHSM2 (-Dgroups=pkcs11)
 
-SignatureController              # Javalin — expoe /sign e /validate
+SignatureController              # Javalin — expoe /sign, /validate, /health, /shutdown
 ```
 
 **PKCS#11:** SunPKCS11 (JDK built-in) e a ponte entre Java e o driver nativo do token/smartcard. A chave privada **nao e acessivel como parametro** no modo PKCS#11 — fica no dispositivo. `FakeSignatureService` implementa `sign(message, privateKey)` normalmente; `PKCS11SignatureService` autentica via PIN e KeyStore.
@@ -160,7 +160,7 @@ runner/
 
 ## Status Atual
 
-**Fase:** Sprints 3, 4 e 5 concluidas. Sprint 6 em andamento (docs 6.1-6.4 concluidas; faltam 6.5-6.8).
+**Fase:** Sprints 1-5 concluidas. Sprint 6 concluida exceto a publicacao da release: itens 6.1-6.17 prontos; resta apenas **6.18** (push da tag `v1.0.0`, acao manual do mantenedor que dispara o `release.yml`).
 
 ### Sprint 1 — Concluida (2026-03-31)
 - CLI `assinatura` e `simulador` com cobra (subcomandos esqueleto)
@@ -223,21 +223,22 @@ runner/
   - US-05 validada pela execucao end-to-end do `release.yml`
 - **5.8** Job `acceptance` no `ci.yml` em matrix 3 SOs (Ubuntu/Windows/macOS): builda `assinador.jar`, exporta `HUBSAUDE_ASSINADOR_JAR`, roda `go test -tags=acceptance ./cmd -run Aceitacao`. Job adicional `release-config` valida o `.goreleaser.yaml` com `goreleaser check`.
 
-### Sprint 6 — em andamento
-- **6.1** Manual do usuario (`docs/manual-usuario.md`): conceitos local vs http, flags globais, referencia de `assinatura criar/validar/servidor` e `simulador iniciar/parar/status`, exit codes, troubleshooting, layout de `~/.hubsaude/`.
-- **6.2** Documentacao tecnica (`docs/tecnico.md`): componentes, fluxo de dados, contrato HTTP (`/sign`, `/validate`, `/health`, `/shutdown`) + contrato CLI do jar, design `SignatureService`/PKCS#11, startup inteligente, provisionamento JDK, download do simulador, estado local, distribuicao/Cosign.
-- **6.3** Guia de instalacao (`docs/instalacao.md`): download por plataforma, checksums, verificacao Cosign (com `--certificate-identity-regexp`/`--certificate-oidc-issuer`), instalacao Windows/Linux/macOS, modo offline, verificacao pos-instalacao.
-- **6.4** Exemplos (`docs/exemplos.md`) com payloads validos completos; README corrigido (flags reais `--payload`/`--modo`/`--porta`/`--jar`; antes documentava `--message-file`/`--private-key` inexistentes) + links para `docs/`.
-- **Pendentes:** 6.5 (cobertura), 6.6 (revisao de erros/mensagens), 6.7 (bugs), 6.8 (publicacao final via tag `v1.0.0`).
-- **Lacuna conhecida:** divergencia de enums de erro entre Go (`cmd/exit.go`: codigos 5/6 `ASSINATURA_INVALIDA`/`DISPOSITIVO_INDISPONIVEL`) e Java (`AssinadorException.Codigo`: `PAYLOAD_MUITO_GRANDE`); 5/6 documentados como reservados. Avaliar alinhamento em 6.6.
+### Sprint 6 — concluida (exceto publicacao da release)
+- **6.1-6.4 (documentacao):** manual do usuario (`docs/manual-usuario.md`), documentacao tecnica (`docs/tecnico.md`, inclui contrato HTTP/CLI, `SignatureService`/PKCS#11, setup SoftHSM2), guia de instalacao (`docs/instalacao.md`, Cosign verify) e exemplos (`docs/exemplos.md`). README com flags reais (`--payload`/`--modo`/`--porta`/`--jar`).
+- **6.5-6.14 (conformidade com a spec do professor):** porta padrao do simulador 8443; status via `/api/info`; provisionamento de **JRE** (Adoptium `image_type=jre`); `--timeout` (auto-shutdown por inatividade, Go+Java); diagramas C4 (`diagramas/*.puml` + SVGs renderizados em `diagramas/imagens/`); decisao formal de escopo do simulador.jar (dependencia externa); **PKCS#11 funcional** (SunPKCS11 + erros `DISPOSITIVO_INDISPONIVEL`/`PIN_INVALIDO` + testes opt-in SoftHSM2); requisitos nao-funcionais (`planejamento/requisitos-nao-funcionais.md`, ISO 25010); estrategia `release.json`. Rastreabilidade item-a-item em `planejamento/pendencias-spec.md`.
+- **6.15-6.17 (polimento — 2026-05-26):**
+  - **6.15 cobertura:** `mvnw clean verify` passa o gate JaCoCo (**88,6%** de linhas; `PKCS11SignatureService` corretamente excluido no nivel do plugin). `AssinadorServidor` 25%→61% com teste do auto-shutdown.
+  - **6.16 enums:** `cmd/exit.go` reconhece `PAYLOAD_MUITO_GRANDE` (→ exit 1), espelhando `MapeadorErro`. Enums Go ↔ Java **totalmente alinhados** (sem mais codigos "reservados").
+  - **6.17 bugs/limpeza:** corrigidos os defeitos que quebravam `mvnw verify` — (1) **JaCoCo 0.8.12 → 0.8.13** (0.8.12 nao instrumenta bytecode Java 24 / major 68, derrubava a JVM do surefire sob JDK > 21); (2) `/shutdown` e auto-shutdown chamavam `System.exit(0)` durante os testes — a acao de desligamento virou **injetavel** (`SignatureController`/`AssinadorServidor`): producao mantem `System.exit(0)`, testes usam no-op/latch.
+- **Pendente:** apenas **6.18** — publicacao da release `v1.0.0` (push da tag `v*` → `release.yml`). Acao manual/externa.
 
-### Status de testes (validado localmente)
+### Status de testes (validado localmente — 2026-05-26)
 - **Go:** 50 testes em `assinatura` + 49 em `simulador` = **99 passando**
-- **Java:** 69 testes em `assinador` (cobertura > 80%)
+- **Java:** **74 testes** em `assinador`; cobertura JaCoCo **88,6%** de linhas (gate 80%; `PKCS11SignatureService` excluido — exige dispositivo/SoftHSM2)
 - **Integracao (opt-in, `-tags=integration`):** 5 testes CLI ↔ jar real
 - **Aceitacao (opt-in, `-tags=acceptance`):** 8 em `assinatura` + 5 em `simulador` = **13 testes** validando US-01..US-03 end-to-end via binario
-- **Total: 168 testes passando** (173 com integracao, 186 com aceitacao)
-- Tooling local: Go 1.26 (Homebrew), Java 21, Maven 3.9 via `mvnw`
+- **Total: 173 testes passando** (178 com integracao, 191 com aceitacao)
+- Tooling: Go, Java 21 (build) via `mvnw`. O build do `assinador.jar` tolera JDK 21-24 (JaCoCo 0.8.13 instrumenta ate Java 24); `<source>/<target>` fixos em 21.
 
 ---
 
@@ -265,19 +266,17 @@ runner/
 - `assinatura/cmd/acceptance_test.go` (8 testes): constroi binario via `TestMain`, exec-uta e valida US-01/02 — help lista subcomandos, `versao` imprime versao injetada via ldflags, `criar`/`validar` modo local com jar real, payload invalido retorna codigo de saida estruturado + erro em stderr, `servidor status`/`parar` sem nada rodando, payload inexistente.
 - `simulador/cmd/acceptance_test.go` (5 testes): mesmo padrao, valida US-03 — help, `versao`, `status`/`parar` sem nada rodando, `--source` com URL custom (verifica que flag e parseada antes de erro de download).
 
-**assinador.jar (69 testes — JUnit 5):**
+**assinador.jar (74 testes — JUnit 5):**
 - `FakeSignatureService` / `PKCS11SignatureService` / `SignatureService`
 - `ValidadorFHIR`: campos obrigatorios, base64, algoritmo, hashes SHA-256
 - `AssinadorCli` + `AcaoAssinar` + `AcaoValidar`: parsing args, payload via stdin/arquivo
 - `MapeadorErro` + `RespostaErro`
-- `SignatureController`: /sign, /validate, /health, /shutdown via HTTP real
-- Cobertura JaCoCo > 80% (excluindo `PKCS11SignatureService`)
+- `SignatureController`: /sign, /validate, /health, /shutdown via HTTP real (acao de shutdown injetada como no-op nos testes)
+- `AssinadorServidor`: timeout zero/negativo ignorado, before-handler de inatividade e **auto-shutdown disparando** (latch injetado, sem `System.exit`)
+- Cobertura JaCoCo **88,6%** de linhas (excluindo `PKCS11SignatureService`)
 
-**Lacunas (a cobrir na Sprint 6):**
-- Manual do usuario (`assinatura` + `simulador`) e guia de instalacao com Cosign verify
-- README + exemplos de uso
-- Documentacao tecnica de integracao + PKCS#11
-- Publicacao final via tag `v1.0.0` (executa o `release.yml` end-to-end)
+**Lacuna restante (Sprint 6):**
+- Publicacao final via tag `v1.0.0` (executa o `release.yml` end-to-end) — item 6.18, acao manual do mantenedor.
 
 ---
 

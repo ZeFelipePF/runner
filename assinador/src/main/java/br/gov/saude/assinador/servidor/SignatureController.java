@@ -25,11 +25,23 @@ public final class SignatureController {
     private static final TypeReference<Map<String, Object>> TIPO_PAYLOAD = new TypeReference<>() {};
 
     private final SignatureService servico;
+    private final Runnable aoDesligar;
     private final ObjectMapper json = new ObjectMapper();
     private final Instant inicio = Instant.now();
 
     public SignatureController(SignatureService servico) {
+        // Producao: POST /shutdown encerra o processo (o CLI depende disso para
+        // parar o assinador.jar em modo servidor).
+        this(servico, () -> System.exit(0));
+    }
+
+    /**
+     * Permite injetar a acao de desligamento. Testes passam um no-op para
+     * verificar o endpoint {@code /shutdown} sem encerrar a JVM do runner de testes.
+     */
+    public SignatureController(SignatureService servico, Runnable aoDesligar) {
         this.servico = servico;
+        this.aoDesligar = aoDesligar;
     }
 
     public void registrar(Javalin app) {
@@ -74,9 +86,9 @@ public final class SignatureController {
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
-            System.exit(0);
+            aoDesligar.run();
         }, "assinador-shutdown");
-        t.setDaemon(false);
+        t.setDaemon(true);
         t.start();
     }
 

@@ -146,12 +146,23 @@
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
-| 6.15 | Revisar cobertura de testes e preencher lacunas | Todas | Média | 🔲 |
-| 6.16 | Revisar tratamento de erros e mensagens ao usuário (alinhar enums Go ↔ Java) | US-01/02 | Média | 🔲 |
-| 6.17 | Corrigir bugs e pendências acumuladas; limpar arquivos órfãos da raiz | Todas | Alta | 🔲 |
-| 6.18 | **Publicar release final no GitHub Releases (tag `v1.0.0`)** — última ação | US-05 | Alta | 🔲 |
+| 6.15 | Revisar cobertura de testes e preencher lacunas | Todas | Média | ✅ |
+| 6.16 | Revisar tratamento de erros e mensagens ao usuário (alinhar enums Go ↔ Java) | US-01/02 | Média | ✅ |
+| 6.17 | Corrigir bugs e pendências acumuladas; limpar arquivos órfãos da raiz | Todas | Alta | ✅ |
+| 6.18 | **Publicar release final no GitHub Releases (tag `v1.0.0`)** — última ação (depende do push da tag pelo mantenedor) | US-05 | Alta | 🔲 |
+
+**Detalhamento da execução de 6.15–6.17 (2026-05-26):**
+
+- **6.15 (cobertura):** `mvnw clean verify` agora passa o gate JaCoCo (**88,6%** de linhas, exclusão correta do `PKCS11SignatureService`). `AssinadorServidor` subiu de 25%→61% com novo teste do auto-shutdown por inatividade. Suíte Java: **74 testes** verdes; suíte Go: ambos os módulos verdes.
+- **6.16 (enums):** `assinatura/cmd/exit.go` agora reconhece explicitamente `PAYLOAD_MUITO_GRANDE` (→ exit 1), espelhando `MapeadorErro` (Java). Enums Go ↔ Java totalmente alinhados — não há mais código "reservado".
+- **6.17 (bugs/limpeza):** corrigidos dois defeitos reais que quebravam `mvnw verify`:
+  1. **JaCoCo 0.8.12 → 0.8.13** — 0.8.12 não instrumenta bytecode Java 24 (major 68); derrubava a JVM do surefire quando o build roda sob JDK > 21.
+  2. **`/shutdown` e auto-shutdown chamavam `System.exit(0)` durante os testes**, derrubando o runner de testes. A ação de desligamento foi tornada **injetável** (`SignatureController`/`AssinadorServidor`): produção mantém `System.exit(0)`, testes usam no-op/latch.
+  - Raiz já estava limpa (`target/`, `dependency-reduced-pom.xml`, `.claude/` ignorados pelo `.gitignore`).
 
 **Entregável final:** release `v1.0.0` publicada com binários assinados, documentação completa (incluindo diagramas C4 e requisitos não-funcionais), todos os critérios de aceitação da especificação atendidos, testes passando nas 3 plataformas.
+
+> **Pendência única (6.18):** todo o código, testes e documentação estão prontos. Falta apenas o mantenedor enviar a tag `v1.0.0` (`git tag v1.0.0 && git push origin v1.0.0`), o que dispara o `release.yml` (binários + Cosign + GitHub Releases). Esta é uma ação externa/irreversível e deve ser feita manualmente.
 
 ---
 

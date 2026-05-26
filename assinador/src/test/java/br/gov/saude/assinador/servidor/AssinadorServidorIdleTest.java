@@ -10,6 +10,8 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -57,5 +59,17 @@ class AssinadorServidorIdleTest {
         app = AssinadorServidor.iniciar(0, new FakeSignatureService(), Duration.ofSeconds(-5));
         assertNotNull(app);
         assertTrue(app.port() > 0);
+    }
+
+    @Test
+    void autoShutdownDisparaAposInatividade() throws Exception {
+        // Timeout curto (2s) + acao injetada (latch) para exercitar o watcher
+        // sem chamar System.exit e derrubar a JVM dos testes.
+        CountDownLatch desligou = new CountDownLatch(1);
+        app = AssinadorServidor.iniciar(0, new FakeSignatureService(),
+                Duration.ofSeconds(2), desligou::countDown);
+        // Sem requisicoes: deve ficar ocioso e disparar o desligamento.
+        assertTrue(desligou.await(10, TimeUnit.SECONDS),
+                "auto-shutdown deveria ter disparado a acao de desligamento");
     }
 }

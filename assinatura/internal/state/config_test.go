@@ -13,7 +13,7 @@ import (
 func TestConfig_DefaultValues(t *testing.T) {
 	cfg := DefaultConfig()
 	assert.Equal(t, 8088, cfg.Assinador.PortaPadrao)
-	assert.Equal(t, 9090, cfg.Simulador.PortaPadrao)
+	assert.Equal(t, 8443, cfg.Simulador.PortaPadrao)
 	assert.Equal(t, 21, cfg.JDK.VersaoMinima)
 	assert.Equal(t, "temurin", cfg.JDK.Distribuicao)
 }
@@ -48,7 +48,7 @@ func TestConfig_LoadPartial_FillsDefaults(t *testing.T) {
 	cfg, err := LoadConfig()
 	require.NoError(t, err)
 	assert.Equal(t, 9999, cfg.Assinador.PortaPadrao)
-	assert.Equal(t, 9090, cfg.Simulador.PortaPadrao)
+	assert.Equal(t, 8443, cfg.Simulador.PortaPadrao)
 	assert.Equal(t, 21, cfg.JDK.VersaoMinima)
 }
 

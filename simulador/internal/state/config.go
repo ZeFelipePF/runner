@@ -9,6 +9,10 @@ import (
 
 const configFile = "config.json"
 
+// PortaPadraoSimulador e a porta default do simulador.jar do HubSaude,
+// conforme criterio US-03 da especificacao.
+const PortaPadraoSimulador = 8443
+
 // AssinadorConfig armazena configuracoes do assinador.
 type AssinadorConfig struct {
 	PortaPadrao             int `json:"portaPadrao"`
@@ -42,7 +46,7 @@ func DefaultConfig() Config {
 			TimeoutShutdownSegundos: 30,
 		},
 		Simulador: SimuladorConfig{
-			PortaPadrao: 9090,
+			PortaPadrao: PortaPadraoSimulador,
 			SourceURL:   "",
 		},
 		JDK: JDKConfig{

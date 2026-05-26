@@ -93,7 +93,7 @@ runner/
 │   │   ├── assinador/  # ClienteCLI (os/exec), ClienteHTTP (net/http), Garantir startup, LocalizarJar, integration_test (tag)
 │   │   ├── porta/      # Auto-deteccao de porta livre (+20 janela)
 │   │   ├── logging/    # slog + OTel bridge
-│   │   ├── jdk/        # Deteccao (JAVA_HOME/PATH/hubsaude) + download Adoptium (Sprint 4)
+│   │   ├── jdk/        # Deteccao Java (JAVA_HOME/PATH/hubsaude) + download JRE Adoptium (Sprint 4)
 │   │   └── state/      # Leitura/escrita de ~/.hubsaude/
 │   └── main.go
 ├── simulador/          # CLI Go
@@ -170,7 +170,7 @@ runner/
 - Logging OTel (slog multiHandler em Go; Logstash + OTel appender em Java)
 
 ### Sprint 2 — Concluida (2026-04-13)
-- Interface `SignatureService` + `FakeSignatureService` + esqueleto `PKCS11SignatureService`
+- Interface `SignatureService` + `FakeSignatureService` + `PKCS11SignatureService` (esqueleto na Sprint 2; integracao SunPKCS11 funcional na Sprint 6 — item 6.11)
 - Validacao de parametros FHIR (`ValidadorFHIR`) com codigos `PARAM_AUSENTE`/`PARAM_INVALIDO`/`ALGORITMO_NAO_SUPORTADO`
 - Modo CLI do `assinador.jar` (`AssinadorCli`, `AcaoAssinar`, `AcaoValidar`) — payload JSON via `--input <arq>` ou stdin
 - Mapeador de erros (`MapeadorErro`) → HTTP status + exit code
@@ -194,7 +194,7 @@ runner/
   - `Detectar()` busca em ordem: `JAVA_HOME` -> `java` no PATH -> `~/.hubsaude/jdk/*/bin/java`
   - `parseMajor()` aceita `21.0.3`, `1.8.0_421` (legado), `22-ea`
   - `Garantir()` baixa via Adoptium API quando ausente; suporta `linux/mac/windows` x `amd64/arm64`; extrai `.tar.gz` (Unix) ou `.zip` (Windows); valida SHA-256; persiste `hubsaude-meta.json`. Sobrescritivel em testes via `HUBSAUDE_ADOPTIUM_URL`.
-- **4.3 + 4.6** `processo.Iniciar()` (em `simulador/internal/processo`): tenta reusar via `state.json` + PID + health (`/actuator/health` ou `/health`); auto-detecta porta a partir do default 9090 (config) com janela +20; usa `--server.port=N` no jar; aguarda `aguardarPorta()` antes de gravar `state.json`.
+- **4.3 + 4.6** `processo.Iniciar()` (em `simulador/internal/processo`): tenta reusar via `state.json` + PID + health (`/actuator/health` ou `/health`); auto-detecta porta a partir do default 8443 (US-03 da spec) com janela +20; usa `--server.port=N` no jar; aguarda `aguardarPorta()` antes de gravar `state.json`.
 - **4.4 + 4.5** Pacote `simulador/internal/download/`:
   - Cache em `~/.hubsaude/simulador/{simulador.jar, simulador-meta.json}`
   - GitHub Releases via `https://api.github.com/repos/hubsaude/simulador/releases` (sobrescritivel via `HUBSAUDE_SIMULADOR_REPO`)

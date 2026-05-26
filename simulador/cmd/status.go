@@ -31,6 +31,9 @@ var statusCmd = &cobra.Command{
 			if s.PIDVivo {
 				out["uptimeSegundos"] = int(s.Uptime.Seconds())
 			}
+			if s.Info != nil {
+				out["info"] = s.Info
+			}
 		}
 		emitirJSON(cmd.OutOrStdout(), out)
 		return nil

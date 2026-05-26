@@ -35,7 +35,7 @@ func TestState_SaveAndLoad(t *testing.T) {
 	s := &State{
 		Simulador: &ProcessInfo{
 			PID:        54321,
-			Porta:      9090,
+			Porta:      8443,
 			IniciadoEm: time.Now().UTC().Truncate(time.Second),
 			JavaPath:   "/usr/bin/java",
 			Versao:     "0.0.1-SNAPSHOT",
@@ -46,7 +46,7 @@ func TestState_SaveAndLoad(t *testing.T) {
 	loaded, err := Load()
 	require.NoError(t, err)
 	assert.Equal(t, 54321, loaded.Simulador.PID)
-	assert.Equal(t, 9090, loaded.Simulador.Porta)
+	assert.Equal(t, 8443, loaded.Simulador.Porta)
 	assert.Equal(t, "0.0.1-SNAPSHOT", loaded.Simulador.Versao)
 }
 
@@ -54,7 +54,7 @@ func TestState_CleanStale_RemovesDeadProcess(t *testing.T) {
 	s := &State{
 		Simulador: &ProcessInfo{
 			PID:   999999,
-			Porta: 9090,
+			Porta: 8443,
 		},
 	}
 	changed := s.CleanStale()

@@ -67,13 +67,15 @@ Dependencia Maven:
 
 ---
 
-## Versao JDK
+## Versao do runtime Java
 
-**Decisao: JDK 21 (LTS) — Eclipse Temurin (Adoptium)**
-**Justificativa:** Long-Term Support ate 2029, virtual threads, pattern matching e records disponiveis. Temurin e a distribuicao de referencia da comunidade, com API REST para download programatico (usada pelo provisionamento automatico).
+**Decisao: JDK 21 para build, JRE 21 para provisionamento automatico — Eclipse Temurin (Adoptium)**
+**Justificativa:** Long-Term Support ate 2029, virtual threads, pattern matching e records disponiveis. Temurin e a distribuicao de referencia da comunidade, com API REST para download programatico.
 
-- `source` e `target` do Maven: `21`
-- Distribuicao para download automatico: Eclipse Temurin via `api.adoptium.net`
+- `source` e `target` do Maven: `21` (build do `assinador.jar` exige JDK)
+- **Provisionamento automatico (US-03 e US-04 da spec): JRE 21** (`image_type=jre` na Adoptium API). A spec exige explicitamente "baixar o JRE" — JRE e mais leve (~50MB vs ~180MB do JDK), suficiente para executar `assinador.jar` e `simulador.jar`.
+- Diretorio destino: `~/.hubsaude/jdk/` (nome mantido por compatibilidade com layouts existentes; conteudo e JRE).
+- Deteccao (`Detectar`) procura apenas `java` no PATH/JAVA_HOME/hubsaude — funciona com JDK ou JRE.
 
 <details>
 <summary>Alternativas consideradas</summary>
@@ -111,3 +113,56 @@ Dependencia Maven:
 - Se ocupada: CLI tenta `8089`, `8090`, ... ate encontrar livre (range maximo: +20)
 - Configuravel via `--porta` ou `config.json`
 - Porta efetiva gravada em `~/.hubsaude/state.json` apos inicializacao
+
+---
+
+## Escopo do Simulador HubSaude (simulador.jar)
+
+**Decisao: Simulador HubSaude tratado como dependencia externa, nao desenvolvido neste TP**
+
+A especificacao (§7 entregavel 7) lista "Codigo fonte do Simulador do HubSaude" como entregavel. Apos analise do escopo e contexto:
+
+- **Contexto:** o `simulador.jar` e parte do ecossistema HubSaude, mantido pela equipe da plataforma (Secretaria de Estado de Saude de Goias / UFG). Replicar seu codigo no escopo deste TP seria inviavel (sem acesso aos modelos FHIR completos) e nao traria valor pedagogico, ja que o foco do trabalho e a **integracao** (CLI <-> jar) e nao o conteudo do simulador.
+- **Alternativa avaliada:** criar stub minimo Javalin com endpoints `/actuator/health` e `/api/info` para desenvolvimento local. Descartada por nao adicionar valor — os testes existentes ja cobrem o gerenciamento de processo via mocks (`httptest`).
+- **Decisao final:** o `simulador.jar` e baixado dinamicamente da GitHub Releases da disciplina (US-03 da spec). O CLI `simulador` cobre integralmente o ciclo de vida (download, cache, iniciar, parar, status). Esta abordagem alinha-se com a propria expectativa da spec ("obtido dinamicamente pelo CLI, baixando a versao mais recente disponivel no repositorio da disciplina").
+- **Onde a decisao esta refletida:** README seccao "Escopo"; `CLAUDE.md` topo do arquivo.
+
+---
+
+## Descoberta do simulador.jar — release.json + fallback GitHub API
+
+**Decisao: Suportar ambas as estrategias, com `release.json` como primaria opcional**
+
+A especificacao US-03 sugere (mas nao obriga) a estrategia de buscar um
+`release.json` em URL fixa do repositorio da disciplina:
+
+```
+https://raw.githubusercontent.com/{owner}/{repo}/main/release.json
+```
+
+- **Pro release.json:** URL estavel, sem paginacao/rate limit da GitHub API, permite anotar URLs especificas de JRE por SO.
+- **Pro GitHub API atual:** descoberta automatica da ultima release.
+
+Decisao final implementada em `simulador/internal/download/release_json.go`:
+
+1. Se `Opcoes.ReleaseJsonURL` (CLI flag) ou env `HUBSAUDE_RELEASE_JSON_URL` definida → tenta `release.json` primeiro.
+2. Em sucesso, baixa o `jar.url` indicado.
+3. Em falha (404, JSON invalido, sem `jar.url`), cai automaticamente na GitHub Releases API tradicional.
+4. `--source` continua sobrescrevendo tudo (URL direta).
+
+Formato esperado:
+
+```json
+{
+  "jar": {
+    "url": "https://github.com/.../assinador.jar",
+    "version": "1.2.0",
+    "sha256": "<opcional>"
+  },
+  "jre": {
+    "linux_x64": "...",
+    "windows_x64": "...",
+    "mac_x64": "..."
+  }
+}
+```

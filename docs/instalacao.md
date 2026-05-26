@@ -8,12 +8,12 @@ Como baixar, verificar e começar a usar os CLIs `assinatura` e `simulador`.
 
 ## 1. Pré-requisitos
 
-**Nenhum obrigatório.** Os binários são autocontidos e o **JDK 21 é provisionado
+**Nenhum obrigatório.** Os binários são autocontidos e o **JRE 21 é provisionado
 automaticamente** no primeiro uso (baixado da Adoptium para `~/.hubsaude/jdk/`).
 
 Opcional, recomendado:
 - [Cosign](https://docs.sigstore.dev/cosign/installation/) — para verificar a autenticidade dos artefatos.
-- Conexão à internet no primeiro uso — para baixar o JDK e o `simulador.jar`
+- Conexão à internet no primeiro uso — para baixar o JRE e o `simulador.jar`
   (depois ficam em cache). Em ambientes offline, veja a seção 6.
 
 ---

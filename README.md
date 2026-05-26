@@ -12,9 +12,23 @@ O Sistema Runner facilita a execução de aplicações Java via linha de comando
 | **assinador.jar** | Java 21 | Valida parâmetros FHIR e simula operações de assinatura digital |
 | **simulador** | Go | CLI que gerencia o ciclo de vida do `simulador.jar` do HubSaúde |
 
-O `simulador.jar` não é desenvolvido neste projeto — é obtido dinamicamente via GitHub Releases da disciplina.
+## Escopo
+
+| Está no escopo | Não está no escopo |
+|---|---|
+| CLI `assinatura` (Go) | Implementação criptográfica real (operações são simuladas) |
+| CLI `simulador` (Go) — gerenciamento do ciclo de vida | Código-fonte do `simulador.jar` — é dependência externa baixada via GitHub Releases da disciplina ([decisão registrada](planejamento/decisoes-tecnicas.md#escopo-do-simulador-hubsaude-simuladorjar)) |
+| `assinador.jar` (Java) — validação FHIR e simulação | Integração com autoridades certificadoras |
+| Integração PKCS#11 funcional (testes opt-in com SoftHSM2) | Interface gráfica |
 
 ## Arquitetura
+
+Diagramas C4 (PlantUML) em [`diagramas/`](diagramas/):
+
+- [Nível 1 — Contexto](diagramas/contexto.puml) ([imagens/contexto.svg](diagramas/imagens/contexto.svg))
+- [Nível 2 — Contêineres](diagramas/conteineres.puml) ([imagens/conteineres.svg](diagramas/imagens/conteineres.svg))
+
+Para gerar/atualizar os SVGs: `bash diagramas/geraimagens.sh` (requer PlantUML ou Docker).
 
 ```
 Usuário
@@ -24,11 +38,11 @@ Usuário
   │                              └── assinador.jar (servidor Javalin)
   │                                        └── SunPKCS11 -> driver PKCS#11
   │
-  └── simulador (CLI Go)
+  └── simulador (CLI Go) — porta padrão 8443
         └── java -jar ~/.hubsaude/simulador/simulador.jar
 
 Estado local: ~/.hubsaude/
-  ├── jdk/          JDK 21 provisionado automaticamente (Temurin)
+  ├── jdk/          JRE 21 provisionado automaticamente (Temurin)
   ├── simulador/    simulador.jar + metadados de versão
   ├── state.json    PID e porta dos processos em execução
   └── config.json   Configurações do usuário
@@ -40,7 +54,8 @@ Estado local: ~/.hubsaude/
 - **Dois modos de invocação** do assinador: direto (`java -jar`) ou via HTTP (servidor persistente)
 - **Suporte a dispositivo criptográfico** (token/smartcard PKCS#11) via SunPKCS11
 - **Gerenciar o Simulador HubSaúde**: iniciar, parar e consultar status
-- **Provisionamento automático do JDK 21** quando ausente na máquina
+- **Provisionamento automático do JRE 21** (Eclipse Temurin) quando Java ausente
+- **Auto-shutdown do servidor** após período de inatividade (`--timeout N` minutos)
 - **Startup inteligente**: detecta processos em execução, auto-seleciona porta disponível
 - **Binários multiplataforma** (Windows, Linux, macOS) distribuídos via GitHub Releases
 - **Artefatos assinados** com Cosign (Sigstore) para verificação de autenticidade
@@ -55,7 +70,7 @@ Baixe o binário para sua plataforma na página de [Releases](../../releases):
 | Linux | `assinatura-x.y.z-linux-amd64.AppImage` | `simulador-x.y.z-linux-amd64.AppImage` |
 | macOS | `assinatura-x.y.z-macos-amd64.dmg` | `simulador-x.y.z-macos-amd64.dmg` |
 
-Nenhum outro pré-requisito — o JDK é provisionado automaticamente no primeiro uso.
+Nenhum outro pré-requisito — o JRE 21 é provisionado automaticamente no primeiro uso.
 
 ### Verificação de integridade
 
@@ -206,11 +221,15 @@ Guias de uso (`docs/`):
 
 - [Manual do Usuário](docs/manual-usuario.md) — referência de comandos, flags e troubleshooting
 - [Guia de Instalação](docs/instalacao.md) — download, verificação com Cosign, primeiros passos
-- [Documentação Técnica](docs/tecnico.md) — arquitetura, contratos HTTP/CLI, `SignatureService`, PKCS#11
+- [Documentação Técnica](docs/tecnico.md) — arquitetura, contratos HTTP/CLI, `SignatureService`, PKCS#11, setup SoftHSM2
 - [Exemplos de Uso](docs/exemplos.md) — payloads completos prontos para copiar
 
 Projeto:
 
 - [Backlog de Entrega](BACKLOG.md)
-- [Planejamento Técnico](planejamento/README.md)
+- [Pendências de Conformidade com a Spec](planejamento/pendencias-spec.md) — rastreabilidade item-a-item dos critérios do professor
+- [Planejamento Técnico](planejamento/README.md) — visão geral
+- [Decisões Técnicas](planejamento/decisoes-tecnicas.md) — DTs (linguagem, build, framework, JRE, escopo simulador, release.json)
+- [Requisitos Não-Funcionais (ISO 25010)](planejamento/requisitos-nao-funcionais.md) — performance, portabilidade, segurança, confiabilidade
+- [Diagramas C4](diagramas/) — fontes PlantUML
 - [Especificação](especificações.md)

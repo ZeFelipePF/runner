@@ -42,7 +42,7 @@ func DefaultConfig() Config {
 			TimeoutShutdownSegundos: 30,
 		},
 		Simulador: SimuladorConfig{
-			PortaPadrao: 9090,
+			PortaPadrao: 8443,
 			SourceURL:   "",
 		},
 		JDK: JDKConfig{

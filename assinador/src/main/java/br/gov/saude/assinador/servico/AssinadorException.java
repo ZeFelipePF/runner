@@ -6,6 +6,9 @@ public class AssinadorException extends RuntimeException {
         PARAM_AUSENTE,
         PARAM_INVALIDO,
         ALGORITMO_NAO_SUPORTADO,
+        ASSINATURA_INVALIDA,
+        DISPOSITIVO_INDISPONIVEL,
+        PIN_INVALIDO,
         PAYLOAD_MUITO_GRANDE,
         ERRO_INTERNO
     }

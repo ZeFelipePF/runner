@@ -221,7 +221,8 @@ class AssinadorCliTest {
             @Override public boolean validate(String m, String s, String k) { return false; }
         };
         int code = cli(stdin(payloadSignValido()), quebrado).executar(new String[]{"sign"});
-        assertEquals(1, code);
+        // ERRO_INTERNO mapeia para exit 7 (alinhado com cmd/exit.go do Go).
+        assertEquals(7, code);
         JsonNode err = json.readTree(stderr());
         assertEquals("ERRO_INTERNO", err.get("error").asText());
         assertTrue(err.get("message").asText().contains("boom"));

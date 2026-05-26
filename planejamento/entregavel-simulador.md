@@ -62,7 +62,7 @@ Ver `startup.md` para o fluxo completo de inicializacao. Apos o startup:
    a. Se --porta especificada: tentar usar essa porta
       └── Se ocupada: erro informando o conflito
    b. Se --porta nao especificada (padrao): auto-detectar
-      └── Tentar porta padrao (config.json ou 9090)
+      └── Tentar porta padrao (config.json ou 8443)
       └── Se ocupada: tentar proximas portas (9091, 9092, ...)
       └── Informar ao usuario qual porta foi escolhida
 3. Iniciar simulador.jar como processo em background
@@ -153,6 +153,6 @@ Apos download, verificar SHA256 do arquivo contra o valor publicado na release.
 - [ ] Implementar verificacao de versao e cache
 - [ ] Implementar verificacao de integridade SHA256
 - [ ] Integrar com estado-local (state.json)
-- [ ] Integrar com provisionamento JDK
+- [ ] Integrar com provisionamento JRE
 - [ ] Testes unitarios
 - [ ] Testes de integracao

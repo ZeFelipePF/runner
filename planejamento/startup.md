@@ -41,7 +41,7 @@ assinatura <comando> [flags]
 │  Se encontrado e versao ok → usar       │
 │  Se nao encontrado:                     │
 │    → Informar: "JDK nao encontrado,     │
-│      baixando JDK 21..."                │
+│      baixando JRE 21..."                │
 │    → Download + extracao                │
 │    → Atualizar config.json com caminho  │
 └─────────────────────┬───────────────────┘
@@ -127,7 +127,7 @@ O usuario deve ver o que esta acontecendo. Exemplos de saida esperada:
 ```
 $ assinatura criar --arquivo doc.json
 
-[✓] JDK 21 encontrado em /home/user/.hubsaude/jdk/temurin-21.0.3
+[✓] JRE 21 encontrado em /home/user/.hubsaude/jdk/temurin-21.0.3
 [✓] Assinador em execucao na porta 8088 (PID 12345)
 Assinatura criada com sucesso.
 ```
@@ -148,8 +148,8 @@ $ simulador iniciar
 [i] Verificando versao do simulador...
 [i] Nova versao disponivel (0.0.2). Baixando...
 [✓] simulador.jar atualizado.
-[i] Porta 9090 disponivel.
-[✓] Simulador iniciado em http://localhost:9090
+[i] Porta 8443 disponivel.
+[✓] Simulador iniciado em http://localhost:8443
 ```
 
 ---

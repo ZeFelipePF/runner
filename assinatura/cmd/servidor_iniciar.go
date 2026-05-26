@@ -15,6 +15,7 @@ var servidorIniciarCmd = &cobra.Command{
 	RunE: func(cmd *cobra.Command, args []string) error {
 		porta, _ := cmd.Flags().GetInt("porta")
 		jar, _ := cmd.Flags().GetString("jar")
+		timeout, _ := cmd.Flags().GetInt("timeout")
 
 		jarPath := jar
 		if jarPath == "" {
@@ -39,10 +40,11 @@ var servidorIniciarCmd = &cobra.Command{
 		defer cancel()
 
 		srv, err := assinador.Garantir(ctx, assinador.OpcoesStartup{
-			JarPath:        jarPath,
-			PortaPreferida: preferida,
-			PortaForcada:   forcada,
-			LogProgresso:   cmd.ErrOrStderr(),
+			JarPath:            jarPath,
+			PortaPreferida:     preferida,
+			PortaForcada:       forcada,
+			LogProgresso:       cmd.ErrOrStderr(),
+			IdleTimeoutMinutos: timeout,
 		})
 		if err != nil {
 			return err
@@ -65,5 +67,5 @@ func init() {
 	servidorCmd.AddCommand(servidorIniciarCmd)
 	servidorIniciarCmd.Flags().Int("porta", 0, "Porta do servidor (0 = config / auto-detectar)")
 	servidorIniciarCmd.Flags().String("jar", "", "Caminho do assinador.jar")
-	servidorIniciarCmd.Flags().Int("timeout", 0, "Desligar apos N minutos sem uso (0 = sem timeout) — nao implementado")
+	servidorIniciarCmd.Flags().Int("timeout", 0, "Desligar apos N minutos sem requisicoes (0 = sem timeout)")
 }

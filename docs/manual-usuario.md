@@ -48,7 +48,7 @@ simulador iniciar --help
 ```
 
 Na primeira execução efetiva, o sistema pode efetuar os seguintes downloads automáticos:
-- o **JDK 21**, caso não haja Java instalado na máquina — destinado a `~/.hubsaude/jdk/`;
+- o **JRE 21**, caso não haja Java instalado na máquina — destinado a `~/.hubsaude/jdk/`;
 - o **`simulador.jar`** (no comando `simulador iniciar`) — destinado a `~/.hubsaude/simulador/`.
 
 Esses downloads ocorrem uma única vez e são mantidos em cache.
@@ -192,14 +192,14 @@ Flags de `servidor iniciar`:
 ### 5.1. `simulador iniciar`
 
 Efetua o download (quando necessário) e inicia o `simulador.jar` do HubSaúde,
-provisionando o JDK quando ausente.
+provisionando o JRE quando ausente.
 
 ```
 Uso:
   simulador iniciar [flags]
 
 Flags:
-  --porta <n>                 Porta do simulador (0 = auto-detecta a partir da 9090)
+  --porta <n>                 Porta do simulador (0 = auto-detecta a partir da 8443)
   --source <url>              URL alternativa para o simulador.jar (http://, https://, file://)
   --versao-simulador <tag>    Versão a baixar via GitHub Releases (padrão: latest)
 ```
@@ -240,7 +240,7 @@ a resposta do health check:
   "registrado": true,
   "running": true,
   "pid": 41234,
-  "porta": 9090,
+  "porta": 8443,
   "iniciadoEm": "2025-12-01T09:00:00Z",
   "pidVivo": true,
   "versao": "v1.2.0",
@@ -258,7 +258,7 @@ simulador parar
 ```
 
 ```json
-{ "status": "STOPPED", "pid": 41234, "porta": 9090, "metodo": "http_shutdown" }
+{ "status": "STOPPED", "pid": 41234, "porta": 8443, "metodo": "http_shutdown" }
 ```
 
 O campo `metodo` indica a forma de encerramento: `http_shutdown`, `sigterm`, `sigkill`,
@@ -278,8 +278,9 @@ permitindo o tratamento condicional em scripts.
 | 2 | `PARAM_AUSENTE` | Campo FHIR obrigatório ausente |
 | 3 | `PARAM_INVALIDO` | Campo FHIR mal formado (ex.: base64 inválido) |
 | 4 | `ALGORITMO_NAO_SUPORTADO` | Algoritmo distinto de `RS256`/`ES256` |
-| 5 | `ASSINATURA_INVALIDA` | Reservado — validação de assinatura falhou |
-| 6 | `DISPOSITIVO_INDISPONIVEL` / `PIN_INVALIDO` | Reservado — PKCS#11 |
+| 5 | `ASSINATURA_INVALIDA` | Validação de assinatura falhou (PKCS#11) |
+| 6 | `DISPOSITIVO_INDISPONIVEL` | Driver PKCS#11 não carrega (HTTP 503) |
+| 6 | `PIN_INVALIDO` | PIN incorreto para o token PKCS#11 (HTTP 401) |
 | 7 | `ERRO_INTERNO` | Falha interna do `assinador.jar` |
 
 Em caso de erro, o `assinatura` emite no **stderr** um JSON estruturado:
@@ -288,8 +289,9 @@ Em caso de erro, o `assinatura` emite no **stderr** um JSON estruturado:
 { "error": "PARAM_AUSENTE", "message": "campo 'bundle' obrigatorio" }
 ```
 
-> Os códigos 5 e 6 estão **reservados** no CLI para a evolução do PKCS#11 e da
-> validação criptográfica real; o `assinador.jar` atual (modo simulado) não os emite.
+> Os códigos 5 e 6 são emitidos quando o provider PKCS#11 está ativo (configurado via
+> env `ASSINADOR_PROVIDER=pkcs11`). Em modo simulado (`FakeSignatureService`, default),
+> apenas 2/3/4/7 são produzidos. Setup do PKCS#11 e SoftHSM2 em `docs/tecnico.md` §5.2.
 
 ---
 
@@ -301,7 +303,7 @@ Em caso de erro, o `assinatura` emite no **stderr** um JSON estruturado:
 | Primeira execução com latência elevada | Download do JDK/`simulador.jar` | Comportamento esperado; ocorre apenas uma vez. Utilize `--verbose` para acompanhar. |
 | `porta em uso` / o comando selecionou outra porta | A porta padrão estava ocupada | O CLI seleciona automaticamente a próxima porta livre (janela de +20) e a registra em `state.json`. Verifique com `... status`. |
 | `status` indica `running: false` apesar de haver processo | PID obsoleto em `state.json` | Execute `... parar` para limpar o estado e, em seguida, `iniciar` novamente. |
-| Ausência de conexão ao baixar JDK/simulador | Ambiente offline | Para o simulador, utilize `--source file://...`. Para o JDK, instale o Java 21 e exponha-o via `JAVA_HOME` ou `PATH`. |
+| Ausência de conexão ao baixar JRE/simulador | Ambiente offline | Para o simulador, utilize `--source file://...`. Para o JRE, instale o Java 21 e exponha-o via `JAVA_HOME` ou `PATH`. |
 
 ### Variáveis de ambiente
 
@@ -317,7 +319,7 @@ Em caso de erro, o `assinatura` emite no **stderr** um JSON estruturado:
 
 ```
 ~/.hubsaude/
-├── jdk/                 JDK 21 provisionado automaticamente (Temurin)
+├── jdk/                 JRE 21 provisionado automaticamente (Temurin)
 ├── simulador/           simulador.jar + simulador-meta.json (versão/hash)
 ├── state.json           PID e porta dos processos em execução
 └── config.json          Configurações do usuário (portas padrão, etc.)

@@ -44,7 +44,7 @@ Armazena informacoes sobre processos Java atualmente em execucao (ou da ultima e
   },
   "simulador": {
     "pid": 12346,
-    "porta": 9090,
+    "porta": 8443,
     "iniciadoEm": "2026-03-24T10:01:00Z",
     "versao": "0.0.1-SNAPSHOT",
     "javaPath": "/home/usuario/.hubsaude/jdk/temurin-21.0.3/bin/java"
@@ -76,7 +76,7 @@ Configuracoes persistidas do usuario, sobrescrevem os padroes do CLI.
     "timeoutShutdownSegundos": 30
   },
   "simulador": {
-    "portaPadrao": 9090,
+    "portaPadrao": 8443,
     "sourceUrl": "https://github.com/disciplina/runner/releases/latest/download/simulador.jar"
   },
   "jdk": {

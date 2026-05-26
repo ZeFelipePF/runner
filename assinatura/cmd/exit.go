@@ -10,7 +10,8 @@ import (
 )
 
 // ExitCode mapeia codigos de erro do assinador para exit codes do CLI.
-// Alinhado com br.gov.saude.assinador.erro.MapeadorErro (lado Java).
+// Espelha br.gov.saude.assinador.erro.MapeadorErro (lado Java). Ambos
+// devem ser atualizados em conjunto.
 const (
 	ExitOK              = 0
 	ExitGenerico        = 1

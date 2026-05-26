@@ -1,0 +1,21 @@
+@startuml contexto
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Sistema Runner — Diagrama de Contexto (C4 Nivel 1)
+
+Person(Usuario, "Usuario", "Integrador da Plataforma HubSaude. Cria e valida assinaturas digitais via CLI e gerencia o Simulador.")
+
+System(SistemaRunner, "Sistema Runner", "Conjunto de CLIs (assinatura, simulador) e aplicacao Java (assinador.jar). Provisiona JRE 21, gerencia processos e interage com dispositivos criptograficos.")
+
+System_Ext(Dispositivo, "Dispositivo de Assinatura Digital", "Hardware criptografico (token USB, smart card) compativel com PKCS#11. Armazena certificados ICP-Brasil A3 e executa operacoes de assinatura.")
+System_Ext(SimuladorHub, "Simulador do HubSaude", "Aplicacao Java (simulador.jar) baixada dinamicamente da GitHub Releases da disciplina. Orquestrada pelo CLI simulador.")
+System_Ext(Adoptium, "Adoptium API", "API REST do Eclipse Temurin para download automatico de JRE 21 multiplataforma.")
+System_Ext(GitHubReleases, "GitHub Releases", "Distribuicao dos binarios assinados via Cosign e do simulador.jar.")
+
+Rel(Usuario, SistemaRunner, "Comandos CLI", "terminal")
+Rel(SistemaRunner, Dispositivo, "Operacoes criptograficas", "PKCS#11")
+Rel(SistemaRunner, SimuladorHub, "Controla ciclo de vida e invoca", "CLI / HTTP")
+Rel(SistemaRunner, Adoptium, "Baixa JRE 21 quando ausente", "HTTPS")
+Rel(SistemaRunner, GitHubReleases, "Baixa simulador.jar", "HTTPS")
+
+@enduml

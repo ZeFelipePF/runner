@@ -31,6 +31,9 @@ type OpcoesStartup struct {
 	PortaForcada   int           // se > 0, exige exatamente essa porta
 	TimeoutPronto  time.Duration // tempo maximo de espera pelo /health (default 30s)
 	LogProgresso   io.Writer     // se nao-nil, recebe mensagens "[i] ..." e "[v] ..."
+	// IdleTimeoutMinutos, se > 0, faz o jar desligar sozinho apos N minutos
+	// sem requisicoes (US-01 ultimo criterio da especificacao).
+	IdleTimeoutMinutos int
 }
 
 // Garantir verifica state.json: se ha um assinador rodando e respondendo, reusa;
@@ -67,7 +70,11 @@ func Garantir(ctx context.Context, opc OpcoesStartup) (*Servidor, error) {
 		progresso(opc, "Iniciando assinador na porta %d...", porta)
 	}
 
-	cmd := exec.Command(opc.JavaPath, "-jar", opc.JarPath, "server", "--porta", strconv.Itoa(porta))
+	jarArgs := []string{"-jar", opc.JarPath, "server", "--porta", strconv.Itoa(porta)}
+	if opc.IdleTimeoutMinutos > 0 {
+		jarArgs = append(jarArgs, "--idle-timeout-minutes", strconv.Itoa(opc.IdleTimeoutMinutos))
+	}
+	cmd := exec.Command(opc.JavaPath, jarArgs...)
 	cmd.Stdout = nil
 	cmd.Stderr = nil
 	if err := cmd.Start(); err != nil {

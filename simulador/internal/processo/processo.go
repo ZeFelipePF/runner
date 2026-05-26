@@ -5,6 +5,7 @@ package processo
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -140,7 +141,7 @@ func escolherPorta(opc OpcoesIniciar) (int, error) {
 	}
 	inicio := opc.PortaPreferida
 	if inicio <= 0 {
-		inicio = 9090
+		inicio = state.PortaPadraoSimulador
 	}
 	return porta.LivreOuProxima(inicio)
 }
@@ -270,6 +271,9 @@ type Status struct {
 	HealthOK   bool
 	Versao     string
 	Uptime     time.Duration
+	// Info e o payload de GET /api/info do simulador.jar quando disponivel
+	// (criterio US-03 da especificacao). Nulo se o endpoint nao responder.
+	Info map[string]any
 }
 
 // Consultar le state.json e enriquece com checagem de PID/health.
@@ -291,8 +295,35 @@ func Consultar(ctx context.Context) (*Status, error) {
 	if out.PIDVivo {
 		out.HealthOK = portaResponde(ctx, out.Porta)
 		out.Uptime = time.Since(out.IniciadoEm)
+		out.Info = consultarApiInfo(ctx, out.Porta)
 	}
 	return out, nil
+}
+
+// consultarApiInfo busca GET /api/info (criterio US-03 da especificacao).
+// Retorna nil se o endpoint nao existir ou nao responder JSON valido.
+func consultarApiInfo(ctx context.Context, p int) map[string]any {
+	url := "http://127.0.0.1:" + strconv.Itoa(p) + "/api/info"
+	c, cancel := context.WithTimeout(ctx, 2*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(c, http.MethodGet, url, nil)
+	if err != nil {
+		return nil
+	}
+	client := &http.Client{Timeout: 2 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode/100 != 2 {
+		return nil
+	}
+	var info map[string]any
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 64*1024)).Decode(&info); err != nil {
+		return nil
+	}
+	return info
 }
 
 func mata(pid int) error {

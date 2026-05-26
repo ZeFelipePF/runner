@@ -2,7 +2,7 @@
 
 Público: desenvolvedores e integradores. Descreve a arquitetura, os contratos de
 comunicação entre os componentes, o design da assinatura (`SignatureService` / PKCS#11)
-e os mecanismos de provisionamento (JDK e `simulador.jar`).
+e os mecanismos de provisionamento (JRE e `simulador.jar`).
 
 > Para uso prático, veja o [Manual do Usuário](manual-usuario.md).
 > O contrato FHIR completo investigado está em [`planejamento/contrato-fhir.md`](../planejamento/contrato-fhir.md).
@@ -204,26 +204,105 @@ Princípios:
 - `FakeSignatureService.sign(message, privateKey)` valida presença e base64 e devolve a
   constante simulada. `validate(message, signature, publicKey)` compara com essa constante.
 
-### 5.1. PKCS#11 (esqueleto)
+### 5.1. PKCS#11 (implementação SunPKCS11)
 
-`PKCS11SignatureService` documenta a integração prevista com dispositivos criptográficos
+`PKCS11SignatureService` implementa a interação com dispositivos criptográficos
 via **SunPKCS11** (provider embutido no JDK). Diferença conceitual chave:
 
 > No modo PKCS#11 a **chave privada não é acessível como parâmetro** — ela permanece no
 > dispositivo. Os parâmetros `privateKey`/`publicKey` da interface passam a ser apenas
 > **aliases** dentro do `KeyStore` PKCS#11; a autenticação é feita por **PIN**.
 
-Fluxo previsto de inicialização (documentado no código):
+Fluxo de assinatura (`sign`):
 
 ```java
-Provider p = Security.getProvider("SunPKCS11").configure(configPath);
+Provider p = Security.getProvider("SunPKCS11").configure(pkcs11Cfg);
 Security.addProvider(p);
 KeyStore ks = KeyStore.getInstance("PKCS11", p);
 ks.load(null, pin);
+PrivateKey k = (PrivateKey) ks.getKey(alias, null);
+Signature sig = Signature.getInstance("SHA256withRSA");
+sig.initSign(k);
+sig.update(payload);
+byte[] assinatura = sig.sign(); // operacao ocorre DENTRO do dispositivo
 ```
 
-Sem token físico + driver nativo, os métodos lançam `AssinadorException`. O escopo de
-simulação do projeto é coberto integralmente por `FakeSignatureService`.
+#### Tratamento de erros (alinhado com `cmd/exit.go` no CLI Go)
+
+| Cenário | Código | HTTP | Exit code (Go) |
+|---------|--------|------|----------------|
+| Driver PKCS#11 não carrega (`ProviderException`, `InvalidParameterException`, config inexistente) | `DISPOSITIVO_INDISPONIVEL` | 503 | 6 |
+| PIN incorreto (`FailedLoginException`) | `PIN_INVALIDO` | 401 | 6 |
+| Alias inexistente no KeyStore | `PARAM_INVALIDO` | 400 | 3 |
+| Base64 inválido em `validate` | `PARAM_INVALIDO` | 400 | 3 |
+
+### 5.2. Setup do SoftHSM2 para desenvolvimento
+
+Para validar a integração PKCS#11 sem token físico, o projeto suporta o **SoftHSM2** —
+implementação software de PKCS#11 distribuída pelo OpenDNSSEC.
+
+#### Linux (Debian/Ubuntu)
+
+```bash
+sudo apt-get install -y softhsm2 opensc
+# inicializa um token no slot 0 (uso unico)
+softhsm2-util --init-token --slot 0 --label "test" --pin 1234 --so-pin 1234
+# importa um par RSA-2048 com alias "testkey"
+pkcs11-tool --module /usr/lib/softhsm/libsofthsm2.so \
+    --login --pin 1234 \
+    --keypairgen --key-type RSA:2048 --label testkey
+# exporta caminho da biblioteca
+export SOFTHSM2_LIB=/usr/lib/softhsm/libsofthsm2.so
+```
+
+#### macOS
+
+```bash
+brew install softhsm opensc
+softhsm2-util --init-token --slot 0 --label "test" --pin 1234 --so-pin 1234
+pkcs11-tool --module $(brew --prefix softhsm)/lib/softhsm/libsofthsm2.so \
+    --login --pin 1234 \
+    --keypairgen --key-type RSA:2048 --label testkey
+export SOFTHSM2_LIB=$(brew --prefix softhsm)/lib/softhsm/libsofthsm2.so
+```
+
+#### Windows
+
+1. Baixar SoftHSM2 do release oficial: <https://github.com/disig/SoftHSM2-for-Windows>
+2. Adicionar `C:\SoftHSM2\bin` ao `PATH`.
+3. Em um PowerShell de administrador:
+   ```powershell
+   softhsm2-util --init-token --slot 0 --label "test" --pin 1234 --so-pin 1234
+   pkcs11-tool --module "C:\SoftHSM2\lib\softhsm2-x64.dll" `
+       --login --pin 1234 `
+       --keypairgen --key-type RSA:2048 --label testkey
+   $env:SOFTHSM2_LIB = "C:\SoftHSM2\lib\softhsm2-x64.dll"
+   ```
+
+#### Exemplo de `pkcs11.cfg` para SunPKCS11
+
+```
+name = SoftHSM2
+library = /usr/lib/softhsm/libsofthsm2.so
+slot = 0
+```
+
+#### Rodar os testes de integração
+
+Por padrão a tag `pkcs11` é excluída pelo Surefire. Para executar:
+
+```bash
+export SOFTHSM2_LIB=...   # caminho do .so/.dylib/.dll
+export SOFTHSM2_PIN=1234
+export SOFTHSM2_ALIAS=testkey
+cd assinador && ./mvnw test -Dgroups=pkcs11
+```
+
+Os 3 cenários cobertos em `PKCS11IntegrationTest`:
+
+1. Assinar e validar com token (caminho feliz).
+2. PIN errado → `PIN_INVALIDO`.
+3. Alias inexistente → `PARAM_INVALIDO`.
 
 ---
 
@@ -290,7 +369,7 @@ Duplicado em `assinatura` e `simulador` (decisão consciente — ver `CLAUDE.md`
 ```json
 {
   "assinador": { "portaPadrao": 8088, "timeoutShutdownSegundos": 0 },
-  "simulador": { "portaPadrao": 9090, "sourceUrl": "" },
+  "simulador": { "portaPadrao": 8443, "sourceUrl": "" },
   "jdk":       { "versaoMinima": 21, "distribuicao": "" }
 }
 ```

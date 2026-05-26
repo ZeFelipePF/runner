@@ -129,6 +129,14 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.3.1</version>
+                <configuration>
+                    <!--
+                        Tag pkcs11 exige SoftHSM2 instalado e env SOFTHSM2_LIB definida.
+                        Por padrao e excluida; rode "mvn test -Dgroups=pkcs11" para
+                        executar localmente.
+                    -->
+                    <excludedGroups>pkcs11</excludedGroups>
+                </configuration>
             </plugin>
 
             <plugin>

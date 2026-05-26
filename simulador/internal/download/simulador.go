@@ -56,6 +56,10 @@ type Opcoes struct {
 	HTTPClient *http.Client
 	// ForcarRedownload ignora o cache.
 	ForcarRedownload bool
+	// ReleaseJsonURL, se nao-vazio, tenta release.json antes da GitHub Releases API.
+	// Quando vazio, usa HUBSAUDE_RELEASE_JSON_URL se definida; senao pula para a API.
+	// Aceita http(s):// e file://.
+	ReleaseJsonURL string
 }
 
 // Resultado descreve o jar disponivel localmente.
@@ -103,6 +107,27 @@ func Garantir(ctx context.Context, opc Opcoes) (*Resultado, error) {
 		if r, ok := tentarCache(metaPath, jarPath, versao, opc.SHA256Esperado); ok {
 			log(opc, "reusando simulador.jar em cache (versao=%s)", r.Metadados.Versao)
 			return r, nil
+		}
+	}
+
+	// Estrategia opcional via release.json (US-03 da spec — exemplo de estrategia).
+	// Tenta release.json se URL explicita ou env definida; cai no caminho tradicional
+	// (GitHub Releases API) em caso de erro.
+	rjURL := opc.ReleaseJsonURL
+	if rjURL == "" && os.Getenv("HUBSAUDE_RELEASE_JSON_URL") != "" {
+		rjURL = URLReleaseJsonOuPadrao()
+	}
+	if rjURL != "" {
+		log(opc, "consultando release.json em %s", rjURL)
+		if rj, err := BuscarReleaseJson(ctx, opc.HTTPClient, rjURL); err == nil {
+			if versao == "latest" || versao == rj.Jar.Version {
+				log(opc, "release.json indica versao %s", rj.Jar.Version)
+				return baixarDoReleaseJson(ctx, opc, rj, jarPath, metaPath)
+			}
+			log(opc, "release.json oferece %s mas usuario pediu %s; usando GitHub API",
+				rj.Jar.Version, versao)
+		} else {
+			log(opc, "release.json indisponivel (%v); usando GitHub API", err)
 		}
 	}
 
@@ -158,6 +183,32 @@ func tentarCache(metaPath, jarPath, versao, esperado string) (*Resultado, bool) 
 		return nil, false
 	}
 	return &Resultado{JarPath: jarPath, Metadados: meta, UsouCache: true}, true
+}
+
+func baixarDoReleaseJson(ctx context.Context, opc Opcoes, rj *ReleaseJson, jarPath, metaPath string) (*Resultado, error) {
+	esperado := opc.SHA256Esperado
+	if esperado == "" {
+		esperado = rj.Jar.SHA256
+	}
+	soma, n, err := baixarPara(ctx, opc.HTTPClient, rj.Jar.URL, jarPath)
+	if err != nil {
+		return nil, err
+	}
+	if esperado != "" && !strings.EqualFold(soma, esperado) {
+		os.Remove(jarPath)
+		return nil, fmt.Errorf("SHA-256 nao confere: esperado=%s, obtido=%s", esperado, soma)
+	}
+	meta := Metadados{
+		Versao:    rj.Jar.Version,
+		URL:       rj.Jar.URL,
+		SHA256:    soma,
+		BaixadoEm: time.Now().UTC(),
+		TamanhoB:  n,
+	}
+	if err := salvarMeta(metaPath, meta); err != nil {
+		return nil, err
+	}
+	return &Resultado{JarPath: jarPath, Metadados: meta}, nil
 }
 
 func baixarFonteDireta(ctx context.Context, opc Opcoes, jarPath, metaPath string) (*Resultado, error) {

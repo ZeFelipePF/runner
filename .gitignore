@@ -9,6 +9,13 @@ dependency-reduced-pom.xml
 *.exe
 *.test
 *.out
+bin/
+dist/
+
+# Artefatos de execucao manual (saidas/logs)
+*.log
+pedido-*.json
+validacao.json
 
 # IDE
 .idea/

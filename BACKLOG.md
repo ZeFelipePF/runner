@@ -113,9 +113,12 @@
 
 ---
 
-## Sprint 6 — Documentação, Polimento e Entrega Final (26/05 – 16/06)
+## Sprint 6 — Documentação, Conformidade com a Spec e Entrega Final (26/05 – 16/06)
 
-> **Objetivo:** finalizar documentação, corrigir pendências e publicar a release final.
+> **Objetivo:** finalizar documentação, fechar lacunas frente à especificação do professor (`runnerProfessor`), corrigir pendências e publicar a release final.
+> Detalhamento técnico dos itens 6.5–6.14 está em [`planejamento/pendencias-spec.md`](planejamento/pendencias-spec.md).
+
+### 6.A — Documentação (já concluída)
 
 | # | Item | US | Prioridade | Status |
 |---|------|----|------------|--------|
@@ -123,12 +126,32 @@
 | 6.2 | Escrever documentação técnica da integração (CLI ↔ Assinador, `SignatureService`, PKCS#11) | §7 | Alta | ✅ |
 | 6.3 | Escrever guia de instalação (download, verificação com Cosign, primeiros passos) | §7 | Alta | ✅ |
 | 6.4 | Incluir exemplos de uso no README e documentação | §7 | Média | ✅ |
-| 6.5 | Revisar cobertura de testes e preencher lacunas | Todas | Média | 🔲 |
-| 6.6 | Revisar tratamento de erros e mensagens ao usuário | US-01/02 | Média | 🔲 |
-| 6.7 | Corrigir bugs e pendências acumuladas | Todas | Alta | 🔲 |
-| 6.8 | Publicar release final no GitHub Releases | US-05 | Alta | 🔲 |
 
-**Entregável final:** release publicada com binários assinados, documentação completa, testes passando.
+### 6.B — Conformidade com a especificação do professor (gaps detectados)
+
+| # | Item | US | Prioridade | Status |
+|---|------|----|------------|--------|
+| 6.5 | **Porta padrão do Simulador = 8443** (alterar `config.go`, `processo.go`, testes, docs) | US-03 | Alta | ✅ |
+| 6.6 | **Status do Simulador via `/api/info`** (mantendo `/actuator/health` como fallback) | US-03 | Alta | ✅ |
+| 6.7 | **Provisionar JRE em vez de JDK** (Adoptium path `/jre/`, ajustar `Garantir`/`Detectar`/metadata) | US-04 | Alta | ✅ |
+| 6.8 | **Implementar `--timeout <minutos>` do `servidor iniciar`** (auto-shutdown por inatividade) | US-01.9 | Alta | ✅ |
+| 6.9 | **Diagramas C4 PlantUML** (`diagramas/contexto.puml`, `diagramas/conteineres.puml`, script de geração, SVG/PNG) | §7.5 | Alta | ✅ |
+| 6.10 | **Decisão de escopo do "código-fonte do Simulador HubSaúde"** — registrar formalmente em `planejamento/` e `CLAUDE.md` que é dependência externa (com justificativa), OU criar stub mínimo | §7.7 | Alta | ✅ |
+| 6.11 | **Integração PKCS#11 (US-02.5 completa):** (a) implementar `PKCS11SignatureService` via `SunPKCS11`; (b) erros `DISPOSITIVO_INDISPONIVEL`/`PIN_INVALIDO` claros no Java (alinhar com `cmd/exit.go`); (c) teste opt-in `-tags=pkcs11` com SoftHSM2; (d) documentar setup do SoftHSM2 (Linux/macOS/Windows) em `docs/tecnico.md` | US-02.5 | Alta | ✅ |
+| 6.12 | **Documento de requisitos não-funcionais** (`planejamento/requisitos-nao-funcionais.md`) — desempenho, portabilidade, segurança, observabilidade conforme ISO 25010 | §planejamento | Média | ✅ |
+| 6.13 | **Estratégia opcional `release.json`** — avaliar implementar URL fixa `raw.githubusercontent.com/.../release.json` para descoberta do simulador.jar; documentar decisão | US-03 | Baixa | ✅ |
+| 6.14 | **Atualizar README** com diagramas C4, links para requisitos não-funcionais e nota sobre escopo do simulador.jar | §7 | Média | ✅ |
+
+### 6.C — Polimento e entrega final (executar nesta ordem, após 6.B)
+
+| # | Item | US | Prioridade | Status |
+|---|------|----|------------|--------|
+| 6.15 | Revisar cobertura de testes e preencher lacunas | Todas | Média | 🔲 |
+| 6.16 | Revisar tratamento de erros e mensagens ao usuário (alinhar enums Go ↔ Java) | US-01/02 | Média | 🔲 |
+| 6.17 | Corrigir bugs e pendências acumuladas; limpar arquivos órfãos da raiz | Todas | Alta | 🔲 |
+| 6.18 | **Publicar release final no GitHub Releases (tag `v1.0.0`)** — última ação | US-05 | Alta | 🔲 |
+
+**Entregável final:** release `v1.0.0` publicada com binários assinados, documentação completa (incluindo diagramas C4 e requisitos não-funcionais), todos os critérios de aceitação da especificação atendidos, testes passando nas 3 plataformas.
 
 ---
 
@@ -136,11 +159,13 @@
 
 | User Story | Sprint 1 | Sprint 2 | Sprint 3 | Sprint 4 | Sprint 5 | Sprint 6 |
 |------------|----------|----------|----------|----------|----------|----------|
-| **US-01** Invocar Assinador via CLI | 1.2, 1.5, 1.7, 1.9 | — | 3.1–3.9 | — | 5.7, 5.8 | 6.6 |
-| **US-02** Simular Assinatura Digital | 1.1, 1.4 | 2.1–2.7 | — | — | 5.7, 5.8 | 6.6 |
-| **US-03** Gerenciar Simulador HubSaúde | 1.3, 1.6, 1.7 | — | — | 4.3–4.9 | 5.7, 5.8 | — |
-| **US-04** Provisionar JDK | — | — | — | 4.1, 4.2, 4.9 | 5.7, 5.8 | — |
-| **US-05** Binários multiplataforma | 1.8 | — | — | — | 5.1–5.6 | 6.8 |
+| **US-01** Invocar Assinador via CLI | 1.2, 1.5, 1.7, 1.9 | — | 3.1–3.9 | — | 5.7, 5.8 | 6.8, 6.16 |
+| **US-02** Simular Assinatura Digital | 1.1, 1.4 | 2.1–2.7 | — | — | 5.7, 5.8 | 6.11, 6.16 |
+| **US-03** Gerenciar Simulador HubSaúde | 1.3, 1.6, 1.7 | — | — | 4.3–4.9 | 5.7, 5.8 | 6.5, 6.6, 6.10, 6.13 |
+| **US-04** Provisionar JDK/JRE | — | — | — | 4.1, 4.2, 4.9 | 5.7, 5.8 | 6.7 |
+| **US-05** Binários multiplataforma | 1.8 | — | — | — | 5.1–5.6 | 6.18 |
+| **§7.5 Diagramas C4** | — | — | — | — | — | 6.9 |
+| **§planejamento NFRs** | — | — | — | — | — | 6.12 |
 
 ---
 
@@ -154,6 +179,9 @@
 | PKCS#11 sem dispositivo físico disponível | Implementação incompleta | Entregar esqueleto documentado; `FakeSignatureService` cobre o escopo da simulação |
 | Provisionamento de JDK varia por SO | Bugs em plataformas específicas | CI matrix (Windows, Linux, macOS) ativo desde a Sprint 1 |
 | Escopo subestimado | Entrega incompleta | Priorizar US-01 e US-02 (core); US-03/04 são secundárias |
+| Gaps frente à spec descobertos tarde (6.5–6.14) | Não atendimento de critérios obrigatórios | Lista exaustiva em `planejamento/pendencias-spec.md`; itens priorizados Alta executados antes de 6.15–6.18 |
+| Mudança da porta 9090 → 8443 pode quebrar deploys/testes existentes | Regressões | Migrar via constante única `PortaPadraoSimulador`; rodar suíte completa antes de mergear |
+| SoftHSM2 indisponível no CI | Teste PKCS#11 falha em runners | Marcar teste como opt-in com build tag `pkcs11`; executar localmente |
 
 ---
 

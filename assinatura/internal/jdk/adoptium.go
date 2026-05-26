@@ -55,7 +55,8 @@ func baixarAdoptium(ctx context.Context, opc Opcoes) (*JDK, error) {
 		return nil, err
 	}
 
-	url := fmt.Sprintf("%s/assets/latest/%d/hotspot?architecture=%s&image_type=jdk&os=%s&vendor=eclipse",
+	// US-04 da especificacao + criterio de US-03: provisionar JRE (image_type=jre).
+	url := fmt.Sprintf("%s/assets/latest/%d/hotspot?architecture=%s&image_type=jre&os=%s&vendor=eclipse",
 		base, min, arch, osNome)
 	log(opc, "consultando Adoptium: %s", url)
 	assets, err := buscarAssets(ctx, url)
@@ -114,13 +115,14 @@ func baixarAdoptium(ctx context.Context, opc Opcoes) (*JDK, error) {
 
 	// Persistir metadados.
 	meta := map[string]any{
-		"release":    asset.ReleaseName,
-		"versao":     asset.Version.Semver,
-		"major":      asset.Version.Major,
-		"javaBin":    javaBin,
-		"baixadoEm":  time.Now().UTC().Format(time.RFC3339),
-		"checksum":   asset.Binary.Package.Checksum,
-		"origem":     "adoptium",
+		"release":   asset.ReleaseName,
+		"versao":    asset.Version.Semver,
+		"major":     asset.Version.Major,
+		"javaBin":   javaBin,
+		"baixadoEm": time.Now().UTC().Format(time.RFC3339),
+		"checksum":  asset.Binary.Package.Checksum,
+		"origem":    "adoptium",
+		"imageType": "jre",
 	}
 	if data, err := json.MarshalIndent(meta, "", "  "); err == nil {
 		_ = os.WriteFile(filepath.Join(releaseDir, "hubsaude-meta.json"), data, 0o644)

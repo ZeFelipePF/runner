@@ -1,0 +1,35 @@
+@startuml conteineres
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Sistema Runner — Diagrama de Conteineres (C4 Nivel 2)
+
+Person(Usuario, "Usuario", "Opera os CLIs do Runner para criar/validar assinaturas e controlar o simulador.")
+
+System_Ext(Dispositivo, "Dispositivo de Assinatura Digital", "Token ou smart card compativel com PKCS#11.")
+System_Ext(SimuladorWeb, "Simulador HubSaude", "Aplicacao web (simulador.jar) gerenciada pelo CLI.")
+System_Ext(Adoptium, "Adoptium API", "Eclipse Temurin — download de JRE 21.")
+System_Ext(GitHubReleases, "GitHub Releases", "Distribuicao do simulador.jar (disciplina).")
+
+System_Boundary(Runner, "Sistema Runner") {
+    Container(AssinaturaCLI, "CLI assinatura", "Go + Cobra", "Recebe comandos de assinatura do usuario, valida entrada e invoca o assinador.jar (local ou HTTP).")
+    Container(SimuladorCLI, "CLI simulador", "Go + Cobra", "Gerencia o ciclo de vida do simulador.jar — baixa, inicia, para e consulta status via /api/info.")
+    Container(AssinadorJar, "assinador.jar", "Java 21 + Javalin", "Valida parametros FHIR e simula assinaturas. Modos: CLI (stdin/stdout JSON) ou HTTP (POST /sign, /validate; GET /health, /api/info; POST /shutdown).")
+    ContainerDb(EstadoLocal, "Estado local", "Filesystem (~/.hubsaude/)", "state.json (PID/porta), config.json, jdk/ (JRE), simulador/ (simulador.jar + meta).")
+}
+
+Rel(Usuario, AssinaturaCLI, "Comandos: criar, validar, servidor iniciar/parar/status", "CLI")
+Rel(Usuario, SimuladorCLI, "Comandos: iniciar, parar, status", "CLI")
+
+Rel(AssinaturaCLI, AssinadorJar, "Invoca assinatura", "os/exec (local) ou HTTP (servidor)")
+Rel(AssinaturaCLI, EstadoLocal, "Le/escreve estado", "JSON")
+
+Rel(SimuladorCLI, SimuladorWeb, "Inicia, para, /api/info, /actuator/shutdown", "HTTP")
+Rel(SimuladorCLI, EstadoLocal, "Le/escreve estado", "JSON")
+Rel(SimuladorCLI, GitHubReleases, "Baixa simulador.jar", "HTTPS")
+
+Rel(AssinaturaCLI, Adoptium, "Baixa JRE 21 se ausente", "HTTPS")
+Rel(SimuladorCLI, Adoptium, "Baixa JRE 21 se ausente", "HTTPS")
+
+Rel_Right(AssinadorJar, Dispositivo, "Operacoes criptograficas (PKCS11SignatureService)", "PKCS#11 via SunPKCS11")
+
+@enduml

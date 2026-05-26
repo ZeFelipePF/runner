@@ -73,14 +73,14 @@ func TestIniciar_DescartaPidObsoleto(t *testing.T) {
 	redirHome(t)
 	st := &state.State{Simulador: &state.ProcessInfo{
 		PID:        99999999,
-		Porta:      9090,
+		Porta:      state.PortaPadraoSimulador,
 		IniciadoEm: time.Now().UTC(),
 	}}
 	require.NoError(t, st.Save())
 
 	_, err := Iniciar(context.Background(), OpcoesIniciar{
 		JarPath:        "/nao-existe/fake.jar",
-		PortaPreferida: 9090,
+		PortaPreferida: state.PortaPadraoSimulador,
 		JavaPath:       "/binario/inexistente",
 		TimeoutPronto:  100 * time.Millisecond,
 	})
@@ -121,6 +121,61 @@ func TestConsultar_PIDVivoEHealthOK(t *testing.T) {
 	assert.Greater(t, s.Uptime, 30*time.Second)
 }
 
+func TestConsultar_ApiInfoPopulado(t *testing.T) {
+	redirHome(t)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/actuator/health":
+			w.WriteHeader(http.StatusOK)
+		case "/api/info":
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = w.Write([]byte(`{"app":"hubsaude-simulador","versao":"1.2.3","env":"dev"}`))
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	defer srv.Close()
+	p := portaDe(t, srv.URL)
+	st := &state.State{Simulador: &state.ProcessInfo{
+		PID:        os.Getpid(),
+		Porta:      p,
+		IniciadoEm: time.Now().UTC().Add(-time.Minute),
+	}}
+	require.NoError(t, st.Save())
+
+	s, err := Consultar(context.Background())
+	require.NoError(t, err)
+	require.NotNil(t, s.Info)
+	assert.Equal(t, "hubsaude-simulador", s.Info["app"])
+	assert.Equal(t, "1.2.3", s.Info["versao"])
+}
+
+func TestConsultar_ApiInfoIndisponivelNaoFalha(t *testing.T) {
+	redirHome(t)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/actuator/health" {
+			w.WriteHeader(http.StatusOK)
+			return
+		}
+		// /api/info deliberadamente 404
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer srv.Close()
+	p := portaDe(t, srv.URL)
+	st := &state.State{Simulador: &state.ProcessInfo{
+		PID:        os.Getpid(),
+		Porta:      p,
+		IniciadoEm: time.Now().UTC().Add(-time.Minute),
+	}}
+	require.NoError(t, st.Save())
+
+	s, err := Consultar(context.Background())
+	require.NoError(t, err)
+	assert.True(t, s.PIDVivo)
+	assert.True(t, s.HealthOK)
+	assert.Nil(t, s.Info)
+}
+
 func TestParar_NaoEstavaRodando(t *testing.T) {
 	redirHome(t)
 	r, err := Parar(context.Background())
@@ -132,7 +187,7 @@ func TestParar_StalePid(t *testing.T) {
 	redirHome(t)
 	st := &state.State{Simulador: &state.ProcessInfo{
 		PID:        99999999,
-		Porta:      9090,
+		Porta:      state.PortaPadraoSimulador,
 		IniciadoEm: time.Now().UTC(),
 	}}
 	require.NoError(t, st.Save())

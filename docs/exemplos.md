@@ -152,17 +152,17 @@ Tabela de exit codes no [Manual do Usuário](manual-usuario.md#6-códigos-de-sa�
 ## 5. Iniciar e gerenciar o simulador
 
 ```bash
-# iniciar (baixa o latest do GitHub Releases na primeira vez; provisiona o JDK se preciso)
+# iniciar (baixa o latest do GitHub Releases na primeira vez; provisiona o JRE se preciso)
 simulador iniciar
-# → { "status": "STARTED", "pid": 41234, "porta": 9090, "versao": "v1.2.0", ... }
+# → { "status": "STARTED", "pid": 41234, "porta": 8443, "versao": "v1.2.0", ... }
 
 # status
 simulador status
-# → { "registrado": true, "running": true, "pid": 41234, "porta": 9090, "uptimeSegundos": 42, ... }
+# → { "registrado": true, "running": true, "pid": 41234, "porta": 8443, "uptimeSegundos": 42, ... }
 
 # parar
 simulador parar
-# → { "status": "STOPPED", "pid": 41234, "porta": 9090, "metodo": "http_shutdown" }
+# → { "status": "STOPPED", "pid": 41234, "porta": 8443, "metodo": "http_shutdown" }
 ```
 
 Variações úteis:
@@ -185,7 +185,7 @@ simulador iniciar --porta 9100
 
 ## 6. Provisionar o JDK manualmente (opcional)
 
-O JDK 21 é baixado automaticamente quando ausente. Para usar um Java já instalado e
+O JRE 21 é baixado automaticamente quando ausente. Para usar um Java já instalado e
 **evitar o download**, basta expô-lo antes de rodar os CLIs:
 
 ```bash
